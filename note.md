@@ -53,6 +53,19 @@ if self.queue.len() == BLOCK_CACHE_SIZE {
 `yield`的 syscall 没有实现(line 502)。
 `syscall id`匹配的部分在[syscall/src/kernel/mod.rs](syscall/src/kernel/mod.rs)的`handle`函数里。`id`常量写在了[syscall/src/syscall.h.in](syscall/src/syscall.h.in)中，编译时根据此文件生成[syscall/src/syscalls.rs](syscall/src/syscalls.rs)。
 
+## 另两个代码
+调度：[https://git.tsinghua.edu.cn/masy18/rCore-Tutorial-v3.git](https://git.tsinghua.edu.cn/masy18/rCore-Tutorial-v3.git)
+置换：[https://github.com/Clement5140/rCore-Tutorial-v3/tree/dev-PRA](https://github.com/Clement5140/rCore-Tutorial-v3/tree/dev-PRA)
+
+### 调度
+查对应算法的 branch 就行。一般来说是改了 `os/task/manager.rs`，然后在`user/src/bin`中添加了测试。
+对于需要提供参数的任务（比如 Shortest Job First 要提供运行时间，周期性任务要提供运行时长和ddl），是修改了`exec`系统调用，增加了所需要的参数。
+
+另外，他是用`sleep`模拟的长任务，但是调`syscall_sleep`的时候是`yeild`然后跑下一个。
+
+### 页面置换
+`dev-PRA`分支上。`mm/frame_manager.rs`里是所有页面置换算法的实现，分为全局置换和局部置换两大类。
+
 ## update
 ### problems
 1. 这个 `xtask/src/fs_pack.rs` 跑的好慢 ... 
