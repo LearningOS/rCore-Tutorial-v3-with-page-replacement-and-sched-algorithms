@@ -6,6 +6,13 @@ make docker
 make run
 ```
 
+update fail时：
+```shell
+rustup toolchain list
+rustup toolchain uninstall <toolchain_name>
+rustup toolchain install nightly
+```
+
 ## task-manage
 各个 trait 的接口可以参考 [task-manage readme](task-manage/README.md)
 
@@ -62,6 +69,31 @@ if self.queue.len() == BLOCK_CACHE_SIZE {
 对于需要提供参数的任务（比如 Shortest Job First 要提供运行时间，周期性任务要提供运行时长和ddl），是修改了`exec`系统调用，增加了所需要的参数。
 
 另外，他是用`sleep`模拟的长任务，但是调`syscall_sleep`的时候是`yeild`然后跑下一个。
+
+#### 批处理系统
+* SJF
+![](img/sjf_test.png)
+* STCF
+![](img/stcf_test.png)
+* HRRN
+![](img/hrrn_test.png)
+
+#### 交互式系统
+* MQ （没找到）
+* MLFQ
+![](img/mlfq_test1.png)
+![](img/mlfq_test2.png)
+* Lottery
+* Stride
+![](img/stride_test.png)
+
+#### 实时计算机系统
+* RMS
+![](img/rms_test.png)
+
+* EDF
+![](img/edf_test1.png)
+![](img/edf_test2.png)
 
 ### 页面置换
 `dev-PRA`分支上。`mm/frame_manager.rs`里是所有页面置换算法的实现，分为全局置换和局部置换两大类。
