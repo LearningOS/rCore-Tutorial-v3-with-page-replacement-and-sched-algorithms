@@ -97,7 +97,23 @@ if self.queue.len() == BLOCK_CACHE_SIZE {
 
 ### 页面置换
 `dev-PRA`分支上。`mm/frame_manager.rs`里是所有页面置换算法的实现，分为全局置换和局部置换两大类。
+改`os/src/config.rs`的`CHOSEN_PRA`可以改选择的页面置换算法：
+```rust
+pub const CHOSEN_PRA: PRA = PRA::FIFO; //line 15
+pub const PFF_T: usize = 100000;  // 缺页率参数
+pub const WORKINGSET_DELTA_NUM: usize = 20; // 工作集参数
+```
 
+| 算法 | test1 | test2 | test3 | test4 | test5 | test6 | test7 |
+| -- | -- | -- | -- | -- | -- | -- | -- |
+| FIFO | 100 | 800 | 100 | 856 | 800 | 2400 | 3257 |
+| Clock | 100 | 800 | 100 | 670 | 800 | 2400 | 3140 | 
+| ClockImproved | 100 | 790 | 100 | 590 | 787 | 2402 | 3177 |
+| PageFaultFrequency(100k) |  
+
+
+原测试结果：
+![](img/page_orig_result.png)
 ## update
 ### problems
 1. 这个 `xtask/src/fs_pack.rs` 跑的好慢 ... 
