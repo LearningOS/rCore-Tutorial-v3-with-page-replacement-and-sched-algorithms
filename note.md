@@ -72,26 +72,40 @@ if self.queue.len() == BLOCK_CACHE_SIZE {
 
 #### 批处理系统
 * SJF
+
 ![](img/sjf_test.png)
+
 * STCF
+
 ![](img/stcf_test.png)
+
 * HRRN
+
 ![](img/hrrn_test.png)
 
 #### 交互式系统
 * MQ （没找到）
+
 * MLFQ
+
 ![](img/mlfq_test1.png)
 ![](img/mlfq_test2.png)
+
 * Lottery
+
+![](img/lottery_test.png)
+
 * Stride
+
 ![](img/stride_test.png)
 
 #### 实时计算机系统
 * RMS
+
 ![](img/rms_test.png)
 
 * EDF
+
 ![](img/edf_test1.png)
 ![](img/edf_test2.png)
 
@@ -99,6 +113,7 @@ if self.queue.len() == BLOCK_CACHE_SIZE {
 `dev-PRA`分支上。`mm/frame_manager.rs`里是所有页面置换算法的实现，分为全局置换和局部置换两大类。
 改`os/src/config.rs`的`CHOSEN_PRA`可以改选择的页面置换算法：
 ```rust
+pub const PRA_IS_LOCAL: bool = true;  // 是否是全局置换算法
 pub const CHOSEN_PRA: PRA = PRA::FIFO; //line 15
 pub const PFF_T: usize = 100000;  // 缺页率参数
 pub const WORKINGSET_DELTA_NUM: usize = 20; // 工作集参数
@@ -109,11 +124,15 @@ pub const WORKINGSET_DELTA_NUM: usize = 20; // 工作集参数
 | FIFO | 100 | 800 | 100 | 856 | 800 | 2400 | 3257 |
 | Clock | 100 | 800 | 100 | 670 | 800 | 2400 | 3140 | 
 | ClockImproved | 100 | 790 | 100 | 590 | 787 | 2402 | 3177 |
-| PageFaultFrequency(100k) |  
-
+| PageFaultFrequency(100k) | 200 | 800 | 185 | 7177 | 816 | 3263 | 8965 |
+| PageFaultFrequency(200k) | 175 | 800 | 200 | 5582 | 812 | 2689 | 失败 | 
+| WorkingSet(5) | 200 | 800 | 200 | 7362 | 800 | 2958 | 9599 |
+| WorkingSet(20) | 100 | 800 | 100 | 5406 | 800 | 2842 | 7700 | 
 
 原测试结果：
+
 ![](img/page_orig_result.png)
+
 ## update
 ### problems
 1. 这个 `xtask/src/fs_pack.rs` 跑的好慢 ... 
