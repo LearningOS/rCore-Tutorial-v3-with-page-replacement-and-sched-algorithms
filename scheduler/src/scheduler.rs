@@ -1,3 +1,7 @@
+use core::marker::Copy;
+use core::cmp::Ord;
+use core::option::Option;
+
 /// Scheduler
 pub trait Schedule<I: Copy + Ord> {
     /// 入队

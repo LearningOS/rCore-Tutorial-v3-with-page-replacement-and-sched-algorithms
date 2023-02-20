@@ -1,0 +1,18 @@
+[package]
+name = "rcore-scheduler"
+description = "Implement some of the schedule algorithm for monocore"
+version = "0.0.0"
+authors = ["Emily <1207666367@qq.com>"]
+repository = ""
+documentation = ""
+license = "WTFPL"
+readme = "README.md"
+keywords = ["rcore", "scheduler"]
+categories = ["no-std"]
+
+
+[features]
+seq = []
+stj = []
+stcf = []
+hrrn = []

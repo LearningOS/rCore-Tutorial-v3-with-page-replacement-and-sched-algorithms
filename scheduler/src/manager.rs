@@ -1,3 +1,7 @@
+use core::marker::Copy;
+use core::cmp::Ord;
+use core::option::Option;
+
 /// Manager trait
 pub trait Manage<T, I: Copy + Ord> {
     /// 插入 item

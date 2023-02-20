@@ -11,8 +11,14 @@ readme = "README.md"
 keywords = ["rcore", "task-manage"]
 categories = ["no-std"]
 
+[dependencies]
+rcore-scheduler = { path = "../scheduler" }
 
 [features]
 proc = []
 thread = []
 
+seq = ["rcore-scheduler/seq"]
+stj = ["rcore-scheduler/stj"]
+stcf = ["rcore-scheduler/stcf"]
+hrrn = ["rcore-scheduler/hrrn"]

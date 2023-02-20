@@ -7,12 +7,7 @@
 extern crate alloc;
 
 mod id;
-mod manager;
-mod scheduler;
-
 pub use id::*;
-pub use manager::Manage;
-pub use scheduler::Schedule;
 
 #[cfg(feature = "proc")]
 mod proc_manage;
@@ -31,3 +26,6 @@ mod thread_manager;
 pub use proc_thread_rel::ProcThreadRel;
 #[cfg(feature = "thread")]
 pub use thread_manager::PThreadManager;
+
+pub use rcore_scheduler::Manager;
+pub use rcore_scheduler::Manage;

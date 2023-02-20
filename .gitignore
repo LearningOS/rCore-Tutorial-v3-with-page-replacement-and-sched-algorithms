@@ -7,3 +7,5 @@
 *.asm
 *.bin
 !/rustsbi-qemu.bin
+
+Cargo.lock

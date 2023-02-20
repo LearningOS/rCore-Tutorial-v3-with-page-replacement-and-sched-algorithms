@@ -4,8 +4,8 @@ use alloc::vec::Vec;
 use crate::ThreadId;
 
 use super::id::ProcId;
-use super::manager::Manage;
-use super::scheduler::Schedule;
+use rcore_scheduler::Manage;
+use rcore_scheduler::Schedule;
 use super::ProcThreadRel;
 use core::marker::PhantomData;
 
