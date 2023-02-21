@@ -1,0 +1,18 @@
+[package]
+name = "rcore-timer"
+description = "Implement function for handling time interrupt"
+version = "0.0.0"
+authors = ["Emily <1207666367@qq.com>"]
+repository = ""
+documentation = ""
+license = "WTFPL"
+readme = "README.md"
+keywords = ["rcore", "timer", "time", "trap", "interrupt"]
+categories = ["no-std"]
+
+[dependencies]
+sbi-rt = { version = "0.0.2", features = ["legacy"] }
+riscv = "0.9"
+
+[features]
+timer = []

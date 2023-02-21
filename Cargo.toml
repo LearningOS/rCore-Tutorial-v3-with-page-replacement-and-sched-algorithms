@@ -15,5 +15,8 @@ members = [
     "signal",
     "signal-impl",
     "sync",
+    
+    "timer",
+    "scheduler"
 ]
 default-members = ["xtask"]

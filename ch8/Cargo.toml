@@ -23,5 +23,7 @@ signal = { path = "../signal" }
 signal-impl = { path = "../signal-impl" }
 sync = { path = "../sync" }
 
+rcore-timer = { path = "../timer", features = ["timer"]}
+
 [build-dependencies]
 linker = { path = "../linker" }

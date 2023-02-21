@@ -39,6 +39,8 @@ use signal::SignalResult;
 use syscall::Caller;
 use xmas_elf::ElfFile;
 
+use rcore_timer::{TIMER, TrapTimer};
+
 // 定义内核入口。
 linker::boot0!(rust_main; stack = 32 * 4096);
 // 物理内存容量 = 48 MiB。
@@ -91,6 +93,12 @@ extern "C" fn rust_main() -> ! {
             PROCESSOR.add(tid, thread, pid);
         }
     }
+
+    //  init time interrupt
+    unsafe {
+        TIMER.init();
+    }
+
     loop {
         if let Some(task) = unsafe { PROCESSOR.find_next() } {
             unsafe { task.context.execute(portal, ()) };
@@ -137,7 +145,17 @@ extern "C" fn rust_main() -> ! {
                             }
                         },
                     }
-                }
+                },
+                // handle time interrupt
+                scause::Trap::Interrupt(scause::Interrupt::SupervisorTimer) => {
+                    unsafe {
+                        if(TIMER.is_timer_enabled()) {
+                            TIMER.set_next_trigger();
+                            PROCESSOR.make_current_suspend();
+                        }
+                        // log::info!("Time Interrupt!");
+                    }
+                },
                 e => {
                     log::error!("unsupported trap: {e:?}");
                     unsafe { PROCESSOR.make_current_exited(-3) };
@@ -228,6 +246,8 @@ mod impls {
     };
     use alloc::sync::Arc;
     use alloc::{alloc::alloc_zeroed, string::String, vec::Vec};
+    use rcore_timer::{TIMER, TrapTimer};
+    use sbi_rt::Timer;
     use core::{alloc::Layout, ptr::NonNull};
     use easy_fs::UserBuffer;
     use easy_fs::{FSManager, OpenFlags};
@@ -516,11 +536,8 @@ mod impls {
                         .address_space
                         .translate(VAddr::new(tp), WRITABLE)
                     {
-                        let time = riscv::register::time::read() * 10000 / 125;
-                        *unsafe { ptr.as_mut() } = TimeSpec {
-                            tv_sec: time / 1_000_000_000,
-                            tv_nsec: time % 1_000_000_000,
-                        };
+                        let time = TrapTimer::get_time_ms();
+                        *unsafe { ptr.as_mut() } = TimeSpec::from_millsecond(time);
                         0
                     } else {
                         log::error!("ptr not readable");
