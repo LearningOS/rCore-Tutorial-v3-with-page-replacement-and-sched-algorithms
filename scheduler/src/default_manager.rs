@@ -4,8 +4,8 @@ use super::Schedule;
 use core::marker::Copy;
 use core::cmp::Ord;
 use core::option::Option;
+use crate::syscall_args::*;
 
-#[cfg(feature = "seq")]
 pub struct DefaultManager<T, I: Copy + Ord> {
     tasks: BTreeMap<I, T>,
     ready_queue: VecDeque<I>,
@@ -48,4 +48,8 @@ impl<T, I: Copy + Ord> Schedule<I> for DefaultManager<T, I> {
     fn fetch(&mut self) -> Option<I> {
         self.ready_queue.pop_front()
     }
+    
+    fn update_exec(&mut self, id: I, args: &ExecArgs) {}
+
+    fn update_fork(&mut self, parent_id: I, child_id: I) {}
 }

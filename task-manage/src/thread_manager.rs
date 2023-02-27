@@ -44,6 +44,10 @@ impl<P, T, MT: Manage<T, ThreadId> + Schedule<ThreadId>, MP: Manage<P, ProcId>>
             phantom_p: PhantomData::<P>,
         }
     }
+    /// get mutable scheduler
+    pub fn get_scheduler(&mut self) -> &mut MT {
+        self.manager.as_mut().unwrap()
+    }
     /// 找到下一个进程
     pub fn find_next(&mut self) -> Option<&mut T> {
         if let Some(id) = self.manager.as_mut().unwrap().fetch() {

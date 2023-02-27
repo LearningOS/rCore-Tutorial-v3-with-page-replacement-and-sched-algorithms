@@ -98,27 +98,10 @@ cases = [
 
 [ch8]
 cases = [
-    "00hello_world",
-    "01store_fault",
-    "02power",
-    "03priv_inst",
-    "04priv_csr",
-    "12forktest",
-    "13forktree",
-    "14forktest2",
-    "15matrix",
-    "user_shell",
     "initproc",
-    "filetest_simple",
-    "cat_filea",
-    "sig_simple",
-    "sig_simple2",
-    "sig_ctrlc",
-    "sig_tests",
-    "threads",
-    "threads_arg",
-    "mpsc_sem",
-    "sync_sem",
-    "race_adder_mutex_blocking",
-    "test_condvar",
+    "sjf1",
+    "sjf2",
+    "sjf3",
+    "sjf4",
+    "sjftests"
 ]

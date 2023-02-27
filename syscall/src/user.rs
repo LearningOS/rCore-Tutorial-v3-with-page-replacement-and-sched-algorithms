@@ -57,12 +57,22 @@ pub fn clock_gettime(clockid: ClockId, tp: *mut TimeSpec) -> isize {
     unsafe { syscall2(SyscallId::CLOCK_GETTIME, clockid.0, tp as _) }
 }
 
+pub fn get_time() -> isize {
+    let mut tp = TimeSpec::ZERO;
+    clock_gettime(ClockId::CLOCK_MONOTONIC, &mut tp);
+    (tp.tv_sec * 1000 + tp.tv_nsec / 1000_000) as isize
+}
+
 pub fn fork() -> isize {
     unsafe { syscall0(SyscallId::CLONE) }
 }
 
 pub fn exec(path: &str) -> isize {
     unsafe { syscall2(SyscallId::EXECVE, path.as_ptr() as usize, path.len()) }
+}
+
+pub fn exec_with_args(path: &str, args_ptr: usize) -> isize {
+    unsafe { syscall3(SyscallId::EXECVE, path.as_ptr() as usize, path.len(), args_ptr)}
 }
 
 pub fn wait(exit_code_ptr: *mut i32) -> isize {

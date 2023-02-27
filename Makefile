@@ -2,8 +2,13 @@ DOCKER_NAME ?= rust-os-camp-2022
 DIR := workplace
 .PHONY: docker build_docker
 
+flag = 
+ifeq (${USER},1)
+	flag += --rebuild-user
+endif
+
 run:
-	cargo qemu --ch 8
+	cargo qemu --ch 8 ${flag}
 
 docker:
 	docker run --rm -it -v ${PWD}:/mnt -w /mnt ${DOCKER_NAME} bash

@@ -29,3 +29,4 @@ pub use thread_manager::PThreadManager;
 
 pub use rcore_scheduler::Manager;
 pub use rcore_scheduler::Manage;
+pub use rcore_scheduler::SyscallHooks;

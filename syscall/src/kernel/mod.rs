@@ -21,7 +21,7 @@ pub trait Process: Sync {
     fn fork(&self, caller: Caller) -> isize {
         unimplemented!()
     }
-    fn exec(&self, caller: Caller, path: usize, count: usize) -> isize {
+    fn exec(&self, caller: Caller, path: usize, count: usize, args: usize) -> isize {
         unimplemented!()
     }
     fn wait(&self, caller: Caller, pid: isize, exit_code_ptr: usize) -> isize {
@@ -201,7 +201,7 @@ pub fn handle(caller: Caller, id: SyscallId, args: [usize; 6]) -> SyscallResult 
         Id::CLOSE => IO.call(id, |io| io.close(caller, args[0])),
         Id::EXIT => PROCESS.call(id, |proc| proc.exit(caller, args[0])),
         Id::CLONE => PROCESS.call(id, |proc| proc.fork(caller)),
-        Id::EXECVE => PROCESS.call(id, |proc| proc.exec(caller, args[0], args[1])),
+        Id::EXECVE => PROCESS.call(id, |proc| proc.exec(caller, args[0], args[1], args[2])),
         Id::WAIT4 => PROCESS.call(id, |proc| proc.wait(caller, args[0] as _, args[1])),
         Id::GETPID => PROCESS.call(id, |proc| proc.getpid(caller)),
         Id::CLOCK_GETTIME => CLOCK.call(id, |clock| {

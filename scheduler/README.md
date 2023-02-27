@@ -1,11 +1,15 @@
 # 进度
 - [ ] 框架
     - [x] 调度器接入
-    - [ ] 时钟中断
-    - [ ] 编译测试
+    - [x] 时钟中断
+    - [x] syscall
+        - [x] exit
+        - [x] yield
+        - [x] 修改 exec，加入 arg 解析
     - [ ] testcase
+        - [ ] 根据 feature 自动编译对应的 testcase 包
 - [ ] 调度算法
-    - [ ] default
-    - [ ] stj
+    - [x] default
+    - [ ] sjf
     - [ ] stcf
     - [ ] hrrn

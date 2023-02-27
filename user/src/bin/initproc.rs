@@ -3,13 +3,13 @@
 
 extern crate user_lib;
 
-use user_lib::{exec, fork, sched_yield, wait};
+use user_lib::{exec_with_args, fork, sched_yield, wait};
 
 #[no_mangle]
 fn main() -> i32 {
     if fork() == 0 {
-        // exec("user_shell\0", &[core::ptr::null::<u8>()]);
-        exec("user_shell");
+        let i: usize = 1;
+        exec_with_args("sjftests", &i as *const _ as usize);
     } else {
         loop {
             let mut exit_code: i32 = 0;

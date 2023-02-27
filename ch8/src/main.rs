@@ -31,8 +31,8 @@ use kernel_vm::{
     AddressSpace,
 };
 pub use processor::PROCESSOR;
-use rcore_console::log;
-use rcore_task_manage::ProcId;
+use rcore_console::log::{self, log, info};
+use rcore_task_manage::{ProcId, SyscallHooks};
 use riscv::register::*;
 use sbi_rt::*;
 use signal::SignalResult;
@@ -102,8 +102,11 @@ extern "C" fn rust_main() -> ! {
     loop {
         if let Some(task) = unsafe { PROCESSOR.find_next() } {
             unsafe { task.context.execute(portal, ()) };
+
             match scause::read().cause() {
                 scause::Trap::Exception(scause::Exception::UserEnvCall) => {
+                    let current_proc = unsafe { PROCESSOR.get_current_proc().unwrap() };
+
                     use syscall::{SyscallId as Id, SyscallResult as Ret};
                     let ctx = &mut task.context.context;
                     ctx.move_next();
@@ -117,7 +120,6 @@ extern "C" fn rust_main() -> ! {
                     //
                     // 最简单粗暴的方法是，在 `scause::Trap` 分类的每一条分支之后都加上信号处理，
                     // 当然这样可能代码上不够优雅。处理信号的具体时机还需要后续再讨论。
-                    let current_proc = unsafe { PROCESSOR.get_current_proc().unwrap() };
                     match current_proc.signal.handle_signals(ctx) {
                         // 进程应该结束执行
                         SignalResult::ProcessKilled(exit_code) => unsafe {
@@ -255,8 +257,8 @@ mod impls {
         page_table::{MmuMeta, Pte, Sv39, VAddr, VmFlags, VmMeta, PPN, VPN},
         PageManager,
     };
-    use rcore_console::log;
-    use rcore_task_manage::{ProcId, ThreadId};
+    use rcore_console::log::{self, info};
+    use rcore_task_manage::{ProcId, ThreadId, SyscallHooks};
     use signal::SignalNo;
     use spin::Mutex;
     use sync::{Condvar, Mutex as MutexTrait, MutexBlocking, Semaphore};
@@ -452,6 +454,10 @@ mod impls {
     impl Process for SyscallContext {
         #[inline]
         fn exit(&self, _caller: Caller, exit_code: usize) -> isize {
+            info!("exit tid: {}", unsafe {PROCESSOR.current().unwrap().tid.get_usize()});
+            unsafe {
+                PROCESSOR.make_current_exited(exit_code as _);
+            }
             exit_code as isize
         }
 
@@ -461,13 +467,17 @@ mod impls {
             let pid = proc.pid;
             *thread.context.context.a_mut(0) = 0 as _;
             unsafe {
+                // modify here, call hook first to copy info from parent
+                info!("fork tid: {}", thread.tid.get_usize());
+                SyscallHooks::handle_fork(PROCESSOR.current().unwrap().tid, thread.tid, PROCESSOR.get_scheduler());
+
                 PROCESSOR.add_proc(pid, proc, current_proc.pid);
                 PROCESSOR.add(thread.tid, thread, pid);
             }
             pid.get_usize() as isize
         }
 
-        fn exec(&self, _caller: Caller, path: usize, count: usize) -> isize {
+        fn exec(&self, _caller: Caller, path: usize, count: usize, args: usize) -> isize {
             const READABLE: VmFlags<Sv39> = VmFlags::build_from_str("RV");
             let current = unsafe { PROCESSOR.get_current_proc().unwrap() };
             current
@@ -488,6 +498,15 @@ mod impls {
                         -1
                     },
                     |fd| {
+                        if let Some(mut args_ptr) = current.address_space.translate(VAddr::new(args), READABLE) {
+                            unsafe {
+                                SyscallHooks::handle_exec(PROCESSOR.current().unwrap().tid, args_ptr.as_ref(), PROCESSOR.get_scheduler());
+                                info!("exec time: {} {}", PROCESSOR.current().unwrap().tid.get_usize(), args_ptr.as_ref().time);
+                                PROCESSOR.make_current_suspend();
+                            }
+
+                        }
+
                         current.exec(ElfFile::new(&read_all(fd)).unwrap());
                         0
                     },
@@ -495,6 +514,7 @@ mod impls {
         }
 
         fn wait(&self, _caller: Caller, pid: isize, exit_code_ptr: usize) -> isize {
+            info!("wait {} {} ", unsafe { PROCESSOR.current().unwrap().tid.get_usize() }, pid);
             let current = unsafe { PROCESSOR.get_current_proc().unwrap() };
             const WRITABLE: VmFlags<Sv39> = VmFlags::build_from_str("W_V");
             if let Some((dead_pid, exit_code)) =
@@ -522,6 +542,7 @@ mod impls {
     impl Scheduling for SyscallContext {
         #[inline]
         fn sched_yield(&self, _caller: Caller) -> isize {
+            unsafe { PROCESSOR.make_current_suspend(); } // TODO
             0
         }
     }

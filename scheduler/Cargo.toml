@@ -13,6 +13,6 @@ categories = ["no-std"]
 
 [features]
 seq = []
-stj = []
+sjf = []
 stcf = []
 hrrn = []

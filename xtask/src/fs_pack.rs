@@ -34,7 +34,7 @@ pub fn easy_fs_pack(cases: &Vec<String>, target: &str) -> std::io::Result<()> {
         f
     })));
     println!("Packing Testcases...");
-    let efs = EasyFileSystem::create(block_file, 64 * 2048, 1);
+    let efs = EasyFileSystem::create(block_file, 32 * 2048, 1);
     println!("Packing Testcases...");
     let root_inode = Arc::new(EasyFileSystem::root_inode(&efs));
     println!("Packing Testcases...");

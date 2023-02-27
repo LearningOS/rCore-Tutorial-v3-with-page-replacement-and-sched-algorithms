@@ -64,6 +64,9 @@ struct BuildArgs {
     /// build in release mode
     #[clap(long)]
     release: bool,
+
+    #[clap(long)]
+    rebuild_user: bool
 }
 
 impl BuildArgs {
@@ -72,7 +75,9 @@ impl BuildArgs {
         let package = match self.ch {
             1 => if self.lab { "ch1-lab" } else { "ch1" }.to_string(),
             2..=8 => {
-                user::build_for(self.ch, false);
+                if self.rebuild_user {
+                    user::build_for(self.ch, false);
+                }
                 env.insert(
                     "APP_ASM",
                     TARGET

@@ -19,6 +19,6 @@ proc = []
 thread = []
 
 seq = ["rcore-scheduler/seq"]
-stj = ["rcore-scheduler/stj"]
+sjf = ["rcore-scheduler/sjf"]
 stcf = ["rcore-scheduler/stcf"]
 hrrn = ["rcore-scheduler/hrrn"]
