@@ -454,7 +454,6 @@ mod impls {
     impl Process for SyscallContext {
         #[inline]
         fn exit(&self, _caller: Caller, exit_code: usize) -> isize {
-            info!("exit tid: {}", unsafe {PROCESSOR.current().unwrap().tid.get_usize()});
             unsafe {
                 PROCESSOR.make_current_exited(exit_code as _);
             }
@@ -468,7 +467,6 @@ mod impls {
             *thread.context.context.a_mut(0) = 0 as _;
             unsafe {
                 // modify here, call hook first to copy info from parent
-                info!("fork tid: {}", thread.tid.get_usize());
                 SyscallHooks::handle_fork(PROCESSOR.current().unwrap().tid, thread.tid, PROCESSOR.get_scheduler());
 
                 PROCESSOR.add_proc(pid, proc, current_proc.pid);
@@ -514,7 +512,6 @@ mod impls {
         }
 
         fn wait(&self, _caller: Caller, pid: isize, exit_code_ptr: usize) -> isize {
-            info!("wait {} {} ", unsafe { PROCESSOR.current().unwrap().tid.get_usize() }, pid);
             let current = unsafe { PROCESSOR.get_current_proc().unwrap() };
             const WRITABLE: VmFlags<Sv39> = VmFlags::build_from_str("W_V");
             if let Some((dead_pid, exit_code)) =

@@ -8,6 +8,6 @@ use user_lib::{sleep};
 #[no_mangle]
 pub fn main() -> i32 {
     println!("I am sjf1");
-    sleep(100000);
+    sleep(10000);
     0
 }
