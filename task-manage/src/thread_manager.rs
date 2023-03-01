@@ -4,10 +4,13 @@ use alloc::vec::Vec;
 use crate::ThreadId;
 
 use super::id::ProcId;
-use rcore_scheduler::Manage;
-use rcore_scheduler::Schedule;
 use super::ProcThreadRel;
 use core::marker::PhantomData;
+
+use rcore_scheduler::Manage;
+use rcore_scheduler::Schedule;
+use rcore_scheduler::KernelHook;
+use rcore_utils;
 
 #[cfg(feature = "thread")]
 #[doc(cfg(feature = "thread"))]
@@ -50,8 +53,12 @@ impl<P, T, MT: Manage<T, ThreadId> + Schedule<ThreadId>, MP: Manage<P, ProcId>>
     }
     /// 找到下一个进程
     pub fn find_next(&mut self) -> Option<&mut T> {
-        if let Some(id) = self.manager.as_mut().unwrap().fetch() {
-            if let Some(task) = self.manager.as_mut().unwrap().get_mut(id) {
+        let scheduler = self.manager.as_mut().unwrap();
+        if let Some(id) = scheduler.fetch() {
+            // call sched to hook
+            KernelHook::handle_sched_to(id, scheduler, rcore_utils::get_time_ms());
+
+            if let Some(task) = scheduler.get_mut(id) {
                 self.current = Some(id);
                 Some(task)
             } else {
@@ -74,6 +81,9 @@ impl<P, T, MT: Manage<T, ThreadId> + Schedule<ThreadId>, MP: Manage<P, ProcId>>
         if let Some(id) = self.current {
             self.manager.as_mut().unwrap().add(id);
             self.current = None;
+
+            // call suspend hook
+            KernelHook::handle_suspend(id, self.manager.as_mut().unwrap(), rcore_utils::get_time_ms());
         }
     }
     /// 结束当前线程
@@ -98,8 +108,11 @@ impl<P, T, MT: Manage<T, ThreadId> + Schedule<ThreadId>, MP: Manage<P, ProcId>>
     }
     /// 让当前线程阻塞
     pub fn make_current_blocked(&mut self) {
-        if let Some(_) = self.current {
+        if let Some(id) = self.current {
             self.current = None;
+
+            // call suspend hook
+            KernelHook::handle_suspend(id, self.manager.as_mut().unwrap(), rcore_utils::get_time_ms());
         }
     }
     /// 某个线程重新入队

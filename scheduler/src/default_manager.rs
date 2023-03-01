@@ -52,4 +52,8 @@ impl<T, I: Copy + Ord> Schedule<I> for DefaultManager<T, I> {
     fn update_exec(&mut self, id: I, args: &ExecArgs) {}
 
     fn update_fork(&mut self, parent_id: I, child_id: I) {}
+
+    fn update_sched_to(&mut self, id: I, time: usize) {}
+
+    fn update_suspend(&mut self, id: I, time: usize) {}
 }

@@ -39,7 +39,7 @@ use signal::SignalResult;
 use syscall::Caller;
 use xmas_elf::ElfFile;
 
-use rcore_timer::{TIMER, TrapTimer};
+use rcore_timer::TIMER;
 
 // 定义内核入口。
 linker::boot0!(rust_main; stack = 32 * 4096);
@@ -151,7 +151,7 @@ extern "C" fn rust_main() -> ! {
                 // handle time interrupt
                 scause::Trap::Interrupt(scause::Interrupt::SupervisorTimer) => {
                     unsafe {
-                        if(TIMER.is_timer_enabled()) {
+                        if TIMER.is_timer_enabled() {
                             TIMER.set_next_trigger();
                             PROCESSOR.make_current_suspend();
                         }
@@ -248,7 +248,8 @@ mod impls {
     };
     use alloc::sync::Arc;
     use alloc::{alloc::alloc_zeroed, string::String, vec::Vec};
-    use rcore_timer::{TIMER, TrapTimer};
+    use rcore_timer::TIMER;
+    use rcore_utils;
     use sbi_rt::Timer;
     use core::{alloc::Layout, ptr::NonNull};
     use easy_fs::UserBuffer;
@@ -499,7 +500,7 @@ mod impls {
                         if let Some(mut args_ptr) = current.address_space.translate(VAddr::new(args), READABLE) {
                             unsafe {
                                 SyscallHooks::handle_exec(PROCESSOR.current().unwrap().tid, args_ptr.as_ref(), PROCESSOR.get_scheduler());
-                                info!("exec time: {} {}", PROCESSOR.current().unwrap().tid.get_usize(), args_ptr.as_ref().time);
+                                info!("exec time: {} {}", PROCESSOR.current().unwrap().tid.get_usize(), args_ptr.as_ref().total_time);
                                 PROCESSOR.make_current_suspend();
                             }
 
@@ -554,7 +555,7 @@ mod impls {
                         .address_space
                         .translate(VAddr::new(tp), WRITABLE)
                     {
-                        let time = TrapTimer::get_time_ms();
+                        let time = rcore_utils::get_time_ms();
                         *unsafe { ptr.as_mut() } = TimeSpec::from_millsecond(time);
                         0
                     } else {

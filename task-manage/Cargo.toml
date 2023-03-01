@@ -13,6 +13,7 @@ categories = ["no-std"]
 
 [dependencies]
 rcore-scheduler = { path = "../scheduler" }
+rcore-utils = { path = "../utils" }
 
 [features]
 proc = []

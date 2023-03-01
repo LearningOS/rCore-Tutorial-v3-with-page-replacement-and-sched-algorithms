@@ -1,0 +1,14 @@
+[package]
+name = "rcore-utils"
+description = "Implement some of the schedule algorithm for monocore"
+version = "0.0.0"
+authors = ["Emily <1207666367@qq.com>"]
+repository = ""
+documentation = ""
+license = "WTFPL"
+readme = "README.md"
+keywords = ["rcore", "utils"]
+categories = ["no-std"]
+
+[dependencies]
+riscv = "0.9"

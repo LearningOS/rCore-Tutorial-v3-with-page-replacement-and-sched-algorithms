@@ -6,6 +6,7 @@ use crate::Manage;
 use crate::Schedule;
 use crate::syscall_args::*;
 
+
 struct SJFTaskBlock<I: Copy + Ord> {
     task_id: I,
     time: usize
@@ -98,4 +99,7 @@ impl<T, I: Copy + Ord> Schedule<I> for SJFManager<T, I> {
         };
         self.time_map.insert(child_id, time_);
     }
+
+    fn update_sched_to(&mut self, id: I, time: usize) {}
+    fn update_suspend(&mut self, id: I, time: usize) {}
 }

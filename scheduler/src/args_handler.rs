@@ -1,6 +1,7 @@
 use crate::syscall_args::*;
 use crate::Manager;
 use crate::Schedule;
+use crate::Manage;
 
 pub struct SyscallHooks {}
 impl SyscallHooks {
@@ -13,3 +14,13 @@ impl SyscallHooks {
     }
 }
 
+pub struct KernelHook {}
+impl KernelHook {
+    pub fn handle_sched_to<T, I: Copy + Ord, MT: Manage<T, I> + Schedule<I>>(id: I, manager:&mut MT, time: usize) {
+        manager.update_sched_to(id, time);
+    }
+
+    pub fn handle_suspend<T, I: Copy + Ord, MT: Manage<T, I> + Schedule<I>>(id: I, manager:&mut MT, time: usize) {
+        manager.update_suspend(id, time)
+    }
+}

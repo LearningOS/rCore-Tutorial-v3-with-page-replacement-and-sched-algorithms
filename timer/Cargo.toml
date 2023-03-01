@@ -13,6 +13,7 @@ categories = ["no-std"]
 [dependencies]
 sbi-rt = { version = "0.0.2", features = ["legacy"] }
 riscv = "0.9"
+rcore-utils = { path = "../utils" }
 
 [features]
 timer = []

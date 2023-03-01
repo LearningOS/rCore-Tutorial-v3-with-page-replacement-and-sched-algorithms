@@ -1,6 +1,7 @@
 #![no_std]
 extern crate sbi_rt;
 extern crate riscv;
+extern crate rcore_utils;
 
 mod timer;
 

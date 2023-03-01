@@ -8,7 +8,7 @@ use user_lib::{get_time};
 #[no_mangle]
 pub fn main() -> i32 {
     let start = get_time();
-    println!("I am sjf4");
+    println!("I am sjf5");
     println!("current time_msec = {}", start);
     let mut a: usize = 1;
     let mut b: usize = 1;
@@ -18,13 +18,13 @@ pub fn main() -> i32 {
         a = b;
         b = c; 
         if i % 50000000 == 0{
-            println!("sjf4 running...");
+            println!("sjf5 running...");
         }
     }
     println!("{}",c);
     let end = get_time();
     println!(
-        "time_msec = {}, delta = {}ms, sjf4 OK!",
+        "time_msec = {}, delta = {}ms, sjf5 OK!",
         end,
         end - start
     );

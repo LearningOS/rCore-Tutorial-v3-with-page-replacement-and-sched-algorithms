@@ -7,3 +7,8 @@ pub struct ExecArgs;
 pub struct ExecArgs {
     pub time: usize
 }
+
+#[cfg(feature = "stcf")]
+pub struct ExecArgs {
+    pub total_time: isize
+}

@@ -17,13 +17,14 @@ kernel-context = { path = "../kernel-context", features = ["foreign"] }
 kernel-alloc = { path = "../kernel-alloc" }
 kernel-vm = { path = "../kernel-vm" }
 syscall = { path = "../syscall", features = ["kernel"] }
-rcore-task-manage = { path = "../task-manage", features = ["thread", "sjf"]  }
+rcore-task-manage = { path = "../task-manage", features = ["thread", "stcf"]  }
 easy-fs = { path = "../easy-fs" }
 signal = { path = "../signal" }
 signal-impl = { path = "../signal-impl" }
 sync = { path = "../sync" }
 
 rcore-timer = { path = "../timer", features = ["timer"]}
+rcore-utils = { path = "../utils" }
 
 [build-dependencies]
 linker = { path = "../linker" }
