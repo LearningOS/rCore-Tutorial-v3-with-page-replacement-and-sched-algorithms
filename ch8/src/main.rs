@@ -22,6 +22,7 @@ use crate::{
     processor::{ProcManager, ThreadManager},
 };
 use alloc::alloc::alloc;
+use rcore_utils::get_time_ms;
 use core::{alloc::Layout, mem::MaybeUninit};
 use easy_fs::{FSManager, OpenFlags};
 use impls::Console;
@@ -32,7 +33,7 @@ use kernel_vm::{
 };
 pub use processor::PROCESSOR;
 use rcore_console::log::{self, log, info};
-use rcore_task_manage::{ProcId, SyscallHooks};
+use rcore_task_manage::{ProcId, SyscallHooks, ThreadId};
 use riscv::register::*;
 use sbi_rt::*;
 use signal::SignalResult;
@@ -163,6 +164,14 @@ extern "C" fn rust_main() -> ! {
                     unsafe { PROCESSOR.make_current_exited(-3) };
                 }
             }
+
+            unsafe {
+                let task_list = TIMER.check_timer();
+                for tid in task_list.into_iter() {
+                    PROCESSOR.re_enque(ThreadId::from_usize(tid));
+                }
+            }
+
         } else {
             println!("no task");
             break;
@@ -249,7 +258,7 @@ mod impls {
     use alloc::sync::Arc;
     use alloc::{alloc::alloc_zeroed, string::String, vec::Vec};
     use rcore_timer::TIMER;
-    use rcore_utils;
+    use rcore_utils::{self, get_time_ms};
     use sbi_rt::Timer;
     use core::{alloc::Layout, ptr::NonNull};
     use easy_fs::UserBuffer;
@@ -501,7 +510,6 @@ mod impls {
                             unsafe {
                                 SyscallHooks::handle_exec(PROCESSOR.current().unwrap().tid, args_ptr.as_ref(), PROCESSOR.get_scheduler());
                                 info!("exec time: {} {}", PROCESSOR.current().unwrap().tid.get_usize(), args_ptr.as_ref().total_time);
-                                PROCESSOR.make_current_suspend();
                             }
 
                         }
@@ -540,8 +548,23 @@ mod impls {
     impl Scheduling for SyscallContext {
         #[inline]
         fn sched_yield(&self, _caller: Caller) -> isize {
-            unsafe { PROCESSOR.make_current_suspend(); } // TODO
             0
+        }
+
+        fn nanosleep(&self, caller: Caller, tp: usize) -> isize {
+            let current_proc = unsafe { PROCESSOR.get_current_proc().unwrap() };
+            if let Some(ptr) = current_proc.address_space.translate(VAddr::new(tp), READABLE) {
+                let _tp: &TimeSpec = unsafe { ptr.as_ref() };
+                unsafe {
+                    let cur_id = PROCESSOR.current().unwrap().tid;
+                    info!("{} sleep {} ms, st={}", cur_id.get_usize(), _tp.to_millsecond(), get_time_ms());
+                    TIMER.add_timer(cur_id.get_usize(), _tp.to_millsecond());
+                    PROCESSOR.make_current_blocked();
+                }
+                0
+            } else {
+                -1
+            }
         }
     }
 
@@ -688,6 +711,9 @@ mod impls {
             let thread = Thread::new(satp, context);
             let tid = thread.tid;
             unsafe {
+                // modify here, call hook first to copy info from parent
+                SyscallHooks::handle_thread_create(PROCESSOR.current().unwrap().tid, thread.tid, PROCESSOR.get_scheduler());
+
                 PROCESSOR.add(tid, thread, current_proc.pid);
             }
             tid.get_usize() as _

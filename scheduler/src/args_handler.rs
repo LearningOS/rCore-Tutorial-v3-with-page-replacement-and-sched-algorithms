@@ -12,6 +12,10 @@ impl SyscallHooks {
     pub fn handle_fork<T, I: Copy + Ord>(parent_id: I, child_id: I, manager:&mut Manager<T, I>) {
         manager.update_fork(parent_id, child_id);
     }
+
+    pub fn handle_thread_create<T, I: Copy + Ord>(parent_id: I, child_id: I, manager:&mut Manager<T, I>) {
+        SyscallHooks::handle_fork(parent_id, child_id, manager);
+    }
 }
 
 pub struct KernelHook {}

@@ -2,6 +2,7 @@
 extern crate sbi_rt;
 extern crate riscv;
 extern crate rcore_utils;
+extern crate alloc;
 
 mod timer;
 

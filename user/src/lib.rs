@@ -79,3 +79,8 @@ pub fn sleep(period_ms: usize) {
         sched_yield();
     }
 }
+
+pub fn sleep_noblock(period_ms: usize) {
+    let mut time = TimeSpec::from_millsecond(period_ms);
+    nanosleep(&mut time);
+}

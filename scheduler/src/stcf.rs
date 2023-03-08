@@ -1,4 +1,4 @@
-use alloc::collections::{BinaryHeap, BTreeMap};
+use alloc::collections::{BinaryHeap, BTreeMap, VecDeque};
 use core::marker::Copy;
 use core::cmp::{Ord, Ordering};
 use core::option::Option;
@@ -70,10 +70,16 @@ impl<T, I: Copy + Ord> STCFManager<T, I> {
             None => { panic!("try to update left time for non-exist!"); },
             Some(&(total_, old_time)) => {
                 let new_time = old_time - time_pass;
-                let new_left_ = if new_time < 0 { 0 } else { new_time };
-                self.time_map.insert(id, (total_, new_left_));
+                self.time_map.insert(id, (total_, new_time));
             }
         }  
+    }
+}
+
+impl<T, I: Copy + Ord> STCFManager<T, I> {
+    pub fn get_list(&self) -> VecDeque<(I, isize, isize)> {
+        let ret: VecDeque<(I, isize, isize)> = self.heap.iter().map(|block| (block.task_id, block.time_total, block.time_left)).collect();
+        ret
     }
 }
 
@@ -149,8 +155,7 @@ impl<T, I: Copy + Ord> Schedule<I> for STCFManager<T, I> {
             }
 
             self.current = None;
-            let mut time_pass = if time > st_time { time - st_time } else { usize::MAX - st_time + time };
-            time_pass = if time_pass > isize::MAX as _ { isize::MAX as _ } else { time_pass };
+            let time_pass = time - st_time;
             self.update_left_time(id, time_pass as isize)
         } else {
             panic!("call suspend but current is none! ")

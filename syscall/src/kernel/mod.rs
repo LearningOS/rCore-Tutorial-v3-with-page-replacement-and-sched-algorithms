@@ -70,6 +70,9 @@ pub trait Scheduling: Sync {
     fn sched_yield(&self, caller: Caller) -> isize {
         unimplemented!()
     }
+    fn nanosleep(&self, caller: Caller, tp: usize) -> isize {
+        unimplemented!()
+    }
 }
 
 pub trait Clock: Sync {
@@ -208,6 +211,10 @@ pub fn handle(caller: Caller, id: SyscallId, args: [usize; 6]) -> SyscallResult 
             clock.clock_gettime(caller, ClockId(args[0]), args[1])
         }),
         Id::SCHED_YIELD => SCHEDULING.call(id, |sched| sched.sched_yield(caller)),
+
+        // add sleep
+        Id::NANOSLEEP => SCHEDULING.call(id, |sched| sched.nanosleep(caller, args[0])),
+
         Id::MUNMAP => MEMORY.call(id, |memory| memory.munmap(caller, args[0], args[1])),
         Id::MMAP => MEMORY.call(id, |memory| {
             let [addr, length, prot, flags, fd, offset] = args;

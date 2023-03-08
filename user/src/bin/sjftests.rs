@@ -15,19 +15,19 @@ static TESTS: &[&str] = &[
 static TIMES: [usize;5] = [
     10000,
     100000,
-    1000,
+    2000,
     500,
     500,
 ];
 
-use user_lib::{exec_with_args, fork, sleep, get_time};
+use user_lib::{exec_with_args, fork, sleep_noblock, get_time};
 
 #[no_mangle]
 pub fn main() -> i32 {
     let mut i = 0;
     for test in TESTS { 
         if i == 3 || i == 4{
-            sleep(300);
+            sleep_noblock(300);
         }
         let start = get_time();
         println!("{} Arrive at {}", test, start);

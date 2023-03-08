@@ -55,6 +55,10 @@ impl TimeSpec {
             tv_nsec: millsecond % 1_000 * 1_000_000,
         }
     }
+
+    pub fn to_millsecond(&self) -> usize {
+        self.tv_nsec / 1000_000 + self.tv_sec * 1000 
+    }
 }
 
 impl core::ops::Add<TimeSpec> for TimeSpec {

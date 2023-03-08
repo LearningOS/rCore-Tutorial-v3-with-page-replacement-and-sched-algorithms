@@ -57,6 +57,10 @@ pub fn clock_gettime(clockid: ClockId, tp: *mut TimeSpec) -> isize {
     unsafe { syscall2(SyscallId::CLOCK_GETTIME, clockid.0, tp as _) }
 }
 
+pub fn nanosleep(tp: *mut TimeSpec) -> isize {
+    unsafe { syscall1(SyscallId::NANOSLEEP, tp as _) }
+}
+
 pub fn get_time() -> isize {
     let mut tp = TimeSpec::ZERO;
     clock_gettime(ClockId::CLOCK_MONOTONIC, &mut tp);

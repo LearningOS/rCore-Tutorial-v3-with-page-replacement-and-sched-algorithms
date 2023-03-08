@@ -13,11 +13,11 @@ pub fn main() -> i32 {
     let mut a: usize = 1;
     let mut b: usize = 1;
     let mut c:usize = 0;
-    for i in 0..200000000{
+    for i in 0..20000000{
         c = (a + b) % 1000007;
         a = b;
         b = c; 
-        if i % 50000000 == 0{
+        if i % 5000000 == 0{
             println!("sjf4 running...");
         }
     }
