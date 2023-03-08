@@ -17,7 +17,7 @@ static TIMES: [usize;5] = [
     100000,
     2000,
     500,
-    500,
+    400,
 ];
 
 use user_lib::{exec_with_args, fork, sleep_noblock, get_time};
