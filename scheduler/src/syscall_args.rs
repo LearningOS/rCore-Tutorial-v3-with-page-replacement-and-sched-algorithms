@@ -1,5 +1,3 @@
-use core::ptr::NonNull;
-
 #[cfg(feature = "seq")]
 pub struct ExecArgs;
 
@@ -11,4 +9,9 @@ pub struct ExecArgs {
 #[cfg(feature = "stcf")]
 pub struct ExecArgs {
     pub total_time: isize
+}
+
+#[cfg(feature = "hrrn")]
+pub struct ExecArgs {
+    pub total_time: usize
 }

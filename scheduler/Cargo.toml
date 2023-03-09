@@ -10,9 +10,11 @@ readme = "README.md"
 keywords = ["rcore", "scheduler"]
 categories = ["no-std"]
 
+[dependencies]
+rcore-utils = { path = "../utils", optional = true }
 
 [features]
 seq = []
 sjf = []
 stcf = []
-hrrn = []
+hrrn = ["dep:rcore-utils"]

@@ -79,11 +79,11 @@ impl<P, T, MT: Manage<T, ThreadId> + Schedule<ThreadId>, MP: Manage<P, ProcId>>
     /// 当前线程重新入队
     pub fn make_current_suspend(&mut self) {
         if let Some(id) = self.current {
-            self.manager.as_mut().unwrap().add(id);
-            self.current = None;
-
             // call suspend hook
             KernelHook::handle_suspend(id, self.manager.as_mut().unwrap(), rcore_utils::get_time_ms());
+            
+            self.manager.as_mut().unwrap().add(id);
+            self.current = None;
         }
     }
     /// 结束当前线程
