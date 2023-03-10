@@ -6,10 +6,17 @@
         - [x] exit
         - [x] yield
         - [x] 修改 exec，加入 arg 解析
+        - [x] sleep
     - [ ] testcase
         - [ ] 根据 feature 自动编译对应的 testcase 包
 - [ ] 调度算法
     - [x] default
-    - [ ] sjf
-    - [ ] stcf
-    - [ ] hrrn
+    - [x] sjf
+    - [x] stcf
+    - [x] hrrn (Note: overflow in multiple)
+    - [x] stride
+    - [ ] lottery
+    - [ ] mlfq
+    - [ ] mq
+    - [ ] edf
+    - [ ] rms

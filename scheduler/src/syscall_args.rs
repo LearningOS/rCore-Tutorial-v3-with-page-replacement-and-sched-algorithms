@@ -15,3 +15,8 @@ pub struct ExecArgs {
 pub struct ExecArgs {
     pub total_time: usize
 }
+
+#[cfg(feature = "stride")]
+pub struct ExecArgs {
+    pub priority: usize
+}

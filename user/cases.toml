@@ -104,5 +104,12 @@ cases = [
     "sjf3",
     "sjf4",
     "sjf5",
-    "sjftests"
+    "sjftests",
+    "stride0",
+    "stride1",
+    "stride2",
+    "stride3",
+    "stride4",
+    "stride5",
+    "stridetests"
 ]
