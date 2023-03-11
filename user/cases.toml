@@ -99,17 +99,18 @@ cases = [
 [ch8]
 cases = [
     "initproc",
-    "sjf1",
-    "sjf2",
-    "sjf3",
-    "sjf4",
-    "sjf5",
-    "sjftests",
     "stride0",
     "stride1",
     "stride2",
     "stride3",
     "stride4",
     "stride5",
-    "stridetests"
+    "stridetests",
+    "lottery0",
+    "lottery1",
+    "lottery2",
+    "lottery3",
+    "lottery4",
+    "lottery5",
+    "lotterytests"
 ]

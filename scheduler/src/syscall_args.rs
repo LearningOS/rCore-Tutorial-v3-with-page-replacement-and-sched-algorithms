@@ -20,3 +20,8 @@ pub struct ExecArgs {
 pub struct ExecArgs {
     pub priority: usize
 }
+
+#[cfg(feature = "lottery")]
+pub struct ExecArgs {
+    pub priority: usize
+}

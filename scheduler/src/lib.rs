@@ -36,4 +36,13 @@ mod stride;
 #[cfg(feature = "stride")]
 pub use stride::StrideManager as Manager;
 
+#[cfg(feature = "lottery")]
+extern crate rand;
+#[cfg(feature = "lottery")]
+extern crate rand_chacha;
+#[cfg(feature = "lottery")]
+mod lottery;
+#[cfg(feature = "lottery")]
+pub use lottery::LotteryManager as Manager;
+
 pub use args_handler::{SyscallHooks, KernelHook};

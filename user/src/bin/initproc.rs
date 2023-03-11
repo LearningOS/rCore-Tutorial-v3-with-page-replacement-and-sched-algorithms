@@ -9,7 +9,7 @@ use user_lib::{exec_with_args, fork, sched_yield, wait};
 fn main() -> i32 {
     if fork() == 0 {
         let i: usize = 16;
-        exec_with_args("stridetests", &i as *const _ as usize);
+        exec_with_args("lotterytests", &i as *const _ as usize);
     } else {
         loop {
             let mut exit_code: i32 = 0;
