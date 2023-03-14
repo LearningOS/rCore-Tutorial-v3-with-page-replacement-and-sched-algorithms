@@ -25,3 +25,9 @@ pub struct ExecArgs {
 pub struct ExecArgs {
     pub priority: usize
 }
+
+#[cfg(feature = "edf")]
+pub struct ExecArgs {
+    pub period: isize,
+    pub init_ddl: isize
+}

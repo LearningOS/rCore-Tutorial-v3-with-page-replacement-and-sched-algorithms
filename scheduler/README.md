@@ -15,8 +15,8 @@
     - [x] stcf
     - [x] hrrn (Note: overflow in multiple)
     - [x] stride
-    - [ ] lottery
+    - [x] lottery
     - [ ] mlfq
     - [ ] mq
-    - [ ] edf
+    - [x] edf
     - [ ] rms

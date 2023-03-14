@@ -509,7 +509,7 @@ mod impls {
                         if let Some(mut args_ptr) = current.address_space.translate(VAddr::new(args), READABLE) {
                             unsafe {
                                 SyscallHooks::handle_exec(PROCESSOR.current().unwrap().tid, args_ptr.as_ref(), PROCESSOR.get_scheduler());
-                                // info!("exec time: {} {}", PROCESSOR.current().unwrap().tid.get_usize(), args_ptr.as_ref().total_time);
+                                info!("exec: {} {} {}", PROCESSOR.current().unwrap().tid.get_usize(), args_ptr.as_ref().init_ddl, args_ptr.as_ref().period);
                             }
 
                         }

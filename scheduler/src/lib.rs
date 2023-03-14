@@ -45,4 +45,11 @@ mod lottery;
 #[cfg(feature = "lottery")]
 pub use lottery::LotteryManager as Manager;
 
+#[cfg(feature = "edf")]
+extern crate rcore_utils;
+#[cfg(feature = "edf")]
+mod edf;
+#[cfg(feature = "edf")]
+pub use edf::EDFManager as Manager;
+
 pub use args_handler::{SyscallHooks, KernelHook};
