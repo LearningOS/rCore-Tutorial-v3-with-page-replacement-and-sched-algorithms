@@ -19,4 +19,4 @@
     - [ ] mlfq
     - [ ] mq
     - [x] edf
-    - [ ] rms
+    - [x] rms

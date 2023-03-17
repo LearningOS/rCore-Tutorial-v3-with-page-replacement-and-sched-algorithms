@@ -31,3 +31,8 @@ pub struct ExecArgs {
     pub period: isize,
     pub init_ddl: isize
 }
+
+#[cfg(feature = "rms")]
+pub struct ExecArgs {
+    pub period: isize
+}

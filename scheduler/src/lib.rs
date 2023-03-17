@@ -52,4 +52,9 @@ mod edf;
 #[cfg(feature = "edf")]
 pub use edf::EDFManager as Manager;
 
+#[cfg(feature = "rms")]
+mod rms;
+#[cfg(feature = "rms")]
+pub use rms::RMSManager as Manager;
+
 pub use args_handler::{SyscallHooks, KernelHook};
