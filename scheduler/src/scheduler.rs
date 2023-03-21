@@ -14,6 +14,8 @@ pub trait Schedule<I: Copy + Ord> {
     fn update_exec(&mut self, id: I, args: &ExecArgs);
     /// copy info for fork
     fn update_fork(&mut self, parent_id: I, child_id: I);
+    /// sleep update
+    fn update_sleep(&mut self, id: I);
 
     /// kernel hook
     fn update_sched_to(&mut self, id: I, time: usize);

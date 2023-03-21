@@ -126,4 +126,6 @@ impl<T, I: Copy + Ord> Schedule<I> for EDFManager<T, I> {
     fn update_sched_to(&mut self, id: I, time: usize) {}
 
     fn update_suspend(&mut self, id: I, time: usize) {}
+
+    fn update_sleep(&mut self, id: I) {}
 }

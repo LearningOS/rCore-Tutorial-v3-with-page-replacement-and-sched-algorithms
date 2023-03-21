@@ -36,3 +36,6 @@ pub struct ExecArgs {
 pub struct ExecArgs {
     pub period: isize
 }
+
+#[cfg(feature = "mlfq")] 
+pub struct ExecArgs;

@@ -57,4 +57,9 @@ mod rms;
 #[cfg(feature = "rms")]
 pub use rms::RMSManager as Manager;
 
+#[cfg(feature = "mlfq")]
+mod mlfq;
+#[cfg(feature = "mlfq")]
+pub use mlfq::MLFQManager as Manager;
+
 pub use args_handler::{SyscallHooks, KernelHook};

@@ -509,7 +509,7 @@ mod impls {
                         if let Some(mut args_ptr) = current.address_space.translate(VAddr::new(args), READABLE) {
                             unsafe {
                                 SyscallHooks::handle_exec(PROCESSOR.current().unwrap().tid, args_ptr.as_ref(), PROCESSOR.get_scheduler());
-                                info!("exec: {} {}", PROCESSOR.current().unwrap().tid.get_usize(), args_ptr.as_ref().period);
+                                // info!("exec: {} {}", PROCESSOR.current().unwrap().tid.get_usize(), args_ptr.as_ref().period);
                             }
 
                         }
@@ -557,8 +557,9 @@ mod impls {
                 let _tp: &TimeSpec = unsafe { ptr.as_ref() };
                 unsafe {
                     let cur_id = PROCESSOR.current().unwrap().tid;
-                    info!("{} sleep {} ms, st={}", cur_id.get_usize(), _tp.to_millsecond(), get_time_ms());
                     TIMER.add_timer(cur_id.get_usize(), _tp.to_millsecond());
+                    SyscallHooks::handle_sleep(cur_id, PROCESSOR.get_scheduler());
+                    info!("{} {}", cur_id.get_usize(), PROCESSOR.get_scheduler().get_priority(&cur_id));
                     PROCESSOR.make_current_blocked();
                 }
                 0

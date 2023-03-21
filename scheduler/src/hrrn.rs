@@ -160,4 +160,6 @@ impl<T, I: Copy + Ord> Schedule<I> for HRRNManager<T, I> {
             panic!("call suspend but current is none! ")
         }
     }
+
+    fn update_sleep(&mut self, id: I) {}
 }

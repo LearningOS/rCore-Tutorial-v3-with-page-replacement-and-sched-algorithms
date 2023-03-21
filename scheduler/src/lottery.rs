@@ -102,4 +102,5 @@ impl<T, I: Copy + Ord> Schedule<I> for LotteryManager<T, I> {
         block.is_ready = false;
         self.total_count -= block.priority;
     }
+    fn update_sleep(&mut self, id: I) {}
 }

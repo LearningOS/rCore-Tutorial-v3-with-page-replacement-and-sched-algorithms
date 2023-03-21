@@ -8,9 +8,7 @@ use user_lib::{exec_with_args, fork, sched_yield, wait};
 #[no_mangle]
 fn main() -> i32 {
     if fork() == 0 {
-        let peroid: isize = -1;
-        let ddl: isize = 0;
-        exec_with_args("edftests", (&(peroid, ddl)) as *const _ as usize);
+        exec_with_args("mlfqtests", &() as *const _ as usize);
     } else {
         loop {
             let mut exit_code: i32 = 0;

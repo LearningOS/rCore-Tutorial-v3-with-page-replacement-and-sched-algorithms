@@ -139,4 +139,5 @@ impl<T, I: Copy + Ord> Schedule<I> for StrideManager<T, I> {
         
     }
 
+    fn update_sleep(&mut self, id: I) {}
 }
