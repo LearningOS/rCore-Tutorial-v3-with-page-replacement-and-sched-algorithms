@@ -96,7 +96,75 @@ cases = [
     "sig_tests",
 ]
 
-[ch8]
+[ch8-seq]
+cases = [
+    "initproc",
+    "sjf1",
+    "sjf2",
+    "sjf3",
+    "sjf4",
+    "sjf5",
+    "sjftests"
+]
+
+[ch8-sjf]
+cases = [
+    "initproc",
+    "sjf1",
+    "sjf2",
+    "sjf3",
+    "sjf4",
+    "sjf5",
+    "sjftests"
+]
+
+[ch8-stcf]
+cases = [
+    "initproc",
+    "sjf1",
+    "sjf2",
+    "sjf3",
+    "sjf4",
+    "sjf5",
+    "sjftests"
+]
+
+[ch8-hrrn]
+cases = [
+    "initproc",
+    "sjf1",
+    "sjf2",
+    "sjf3",
+    "sjf4",
+    "sjf5",
+    "sjftests"
+]
+
+[ch8-stride]
+cases = [
+    "initproc",
+    "stride0",
+    "stride1",
+    "stride2",
+    "stride3",
+    "stride4",
+    "stride5",
+    "stridetests" 
+]
+
+[ch8-lottery]
+cases = [
+    "initproc",
+    "lottery0",
+    "lottery1",
+    "lottery2",
+    "lottery3",
+    "lottery4",
+    "lottery5",
+    "lotterytests"
+]
+
+[ch8-mlfq]
 cases = [
     "initproc",
     "mlfq1",
@@ -105,4 +173,22 @@ cases = [
     "mlfq4",
     "mlfq5",
     "mlfqtests"
+]
+
+[ch8-edf]
+cases = [
+    "initproc",
+    "edf0",
+    "edf1",
+    "edf2",
+    "edftests"
+]
+
+[ch8-rms]
+cases = [
+    "initproc",
+    "edf0",
+    "edf1",
+    "edf2",
+    "edftests"
 ]

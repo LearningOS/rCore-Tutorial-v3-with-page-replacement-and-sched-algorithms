@@ -11,7 +11,7 @@ use std::{
     collections::HashMap,
     ffi::OsString,
     fs,
-    path::{Path, PathBuf},
+    path::{Path, PathBuf}, vec,
 };
 
 const TARGET_ARCH: &str = "riscv64gc-unknown-none-elf";
@@ -66,17 +66,23 @@ struct BuildArgs {
     release: bool,
 
     #[clap(long)]
-    rebuild_user: bool
+    rebuild_user: bool,
+    #[clap(short, long)]
+    sched: Option<String>
 }
 
 impl BuildArgs {
+    fn get_sched_method(&self) -> String {
+        if let Some(s) = self.sched.clone() { s } else { "seq".to_string() }
+    }
+
     fn make(&self) -> PathBuf {
         let mut env: HashMap<&str, OsString> = HashMap::new();
         let package = match self.ch {
             1 => if self.lab { "ch1-lab" } else { "ch1" }.to_string(),
             2..=8 => {
                 if self.rebuild_user {
-                    user::build_for(self.ch, false);
+                    user::build_for(self.ch, self.get_sched_method(), false);
                 }
                 env.insert(
                     "APP_ASM",
@@ -94,8 +100,19 @@ impl BuildArgs {
         let mut build = Cargo::build();
         build
             .package(&package)
-            .optional(&self.features, |cargo, features| {
-                cargo.features(false, features.split_whitespace());
+            .conditional(true, |cargo| {
+                
+                let _sched = self.get_sched_method();
+                let mut task_manage_feature = vec![_sched];
+                
+                if let Some(f) = &self.features {
+                    let mut _features: Vec<_> = f.split_whitespace().into_iter().map(|s| s.to_string()).collect();
+                    _features.append(&mut task_manage_feature);
+
+                    cargo.features(false, _features);
+                } else {
+                    cargo.features(false, task_manage_feature);
+                }
             })
             .optional(&self.log, |cargo, log| {
                 cargo.env("LOG", log);

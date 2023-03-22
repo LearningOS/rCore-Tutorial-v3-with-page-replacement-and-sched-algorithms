@@ -3,12 +3,27 @@
 
 extern crate user_lib;
 
-use user_lib::{exec_with_args, fork, sched_yield, wait};
+use rcore_console::log::info;
+use user_lib::{exec_with_args, fork, sched_yield, wait, get_args};
 
 #[no_mangle]
 fn main() -> i32 {
+    let proc_name = if cfg!(feature = "seq") || cfg!(feature = "sjf") || cfg!(feature = "stcf") || cfg!(feature = "hrrn") {
+        "sjftests"
+    } else if cfg!(feature = "stride") {
+        "stridetests"
+    } else if cfg!(feature = "lottery") {
+        "lotterytests"
+    } else if cfg!(feature = "mlfq") {
+        "mlfqtests"
+    } else if cfg!(feature = "edf") || cfg!(feature = "rms") {
+        "edftests"
+    } else {
+        panic!("unsupported sched method!");
+    };
+
     if fork() == 0 {
-        exec_with_args("mlfqtests", &() as *const _ as usize);
+        exec_with_args(proc_name, get_args(proc_name));
     } else {
         loop {
             let mut exit_code: i32 = 0;

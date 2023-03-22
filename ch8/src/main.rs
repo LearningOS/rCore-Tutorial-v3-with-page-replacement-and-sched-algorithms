@@ -559,7 +559,7 @@ mod impls {
                     let cur_id = PROCESSOR.current().unwrap().tid;
                     TIMER.add_timer(cur_id.get_usize(), _tp.to_millsecond());
                     SyscallHooks::handle_sleep(cur_id, PROCESSOR.get_scheduler());
-                    info!("{} {}", cur_id.get_usize(), PROCESSOR.get_scheduler().get_priority(&cur_id));
+                    // info!("{} {}", cur_id.get_usize(), PROCESSOR.get_scheduler().get_priority(&cur_id));
                     PROCESSOR.make_current_blocked();
                 }
                 0

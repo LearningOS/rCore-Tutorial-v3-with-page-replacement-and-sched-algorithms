@@ -17,14 +17,14 @@ pub struct CasesInfo {
 }
 
 impl Cases {
-    fn build(&mut self, release: bool) -> CasesInfo {
+    fn build(&mut self, release: bool, sched_method: &String) -> CasesInfo {
         if let Some(names) = &self.cases {
             let base = self.base.unwrap_or(0);
             let step = self.step.filter(|_| self.base.is_some()).unwrap_or(0);
             let cases = names
                 .into_iter()
                 .enumerate()
-                .map(|(i, name)| build_one(name, release, base + i as u64 * step))
+                .map(|(i, name)| build_one(name, release, base + i as u64 * step, sched_method))
                 .collect();
             CasesInfo {
                 base,
@@ -41,7 +41,7 @@ impl Cases {
     }
 }
 
-fn build_one(name: impl AsRef<OsStr>, release: bool, base_address: u64) -> PathBuf {
+fn build_one(name: impl AsRef<OsStr>, release: bool, base_address: u64, sched_method: &String) -> PathBuf {
     let name = name.as_ref();
     let binary = base_address != 0;
     if binary {
@@ -52,6 +52,9 @@ fn build_one(name: impl AsRef<OsStr>, release: bool, base_address: u64) -> PathB
         .target(TARGET_ARCH)
         .arg("--bin")
         .arg(name)
+        .conditional(name == "initproc", |cargo| {
+            cargo.features(false, vec![sched_method]);
+        })
         .conditional(release, |cargo| {
             cargo.release();
         })
@@ -69,13 +72,14 @@ fn build_one(name: impl AsRef<OsStr>, release: bool, base_address: u64) -> PathB
     }
 }
 
-pub fn build_for(ch: u8, release: bool) {
+pub fn build_for(ch: u8, sched_method: String, release: bool) {
+    let field = format!("ch{ch}-{sched_method}");
     let cfg = std::fs::read_to_string(PROJECT.join("user/cases.toml")).unwrap();
     let mut cases = toml::from_str::<HashMap<String, Cases>>(&cfg)
         .unwrap()
-        .remove(&format!("ch{ch}"))
+        .remove(&field)
         .unwrap_or_default();
-    let CasesInfo { base, step, bins } = cases.build(release);
+    let CasesInfo { base, step, bins } = cases.build(release, &sched_method);
     if bins.is_empty() {
         return;
     }

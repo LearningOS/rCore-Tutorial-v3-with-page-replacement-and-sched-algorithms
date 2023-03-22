@@ -8,7 +8,7 @@ ifeq (${USER},1)
 endif
 
 run:
-	cargo qemu --ch 8 ${flag}
+	cargo qemu --ch 8 ${flag} --sched ${SCHED}
 
 docker:
 	docker run --rm -it -v ${PWD}:/mnt -w /mnt ${DOCKER_NAME} bash

@@ -4,10 +4,14 @@
 #![feature(alloc_error_handler)]
 
 mod heap;
+mod config;
+use config::INIT_PROC_AND_ARGS;
 
 extern crate alloc;
+extern crate lazy_static;
 
 use core::alloc::Layout;
+use alloc::{collections::BTreeMap, string::String};
 use rcore_console::log;
 
 pub use rcore_console::{print, println};
@@ -83,4 +87,8 @@ pub fn sleep(period_ms: usize) {
 pub fn sleep_noblock(period_ms: usize) {
     let mut time = TimeSpec::from_millsecond(period_ms);
     nanosleep(&mut time);
+}
+
+pub fn get_args(proc_name: &str) -> usize {
+    *INIT_PROC_AND_ARGS.get(proc_name).unwrap()
 }
