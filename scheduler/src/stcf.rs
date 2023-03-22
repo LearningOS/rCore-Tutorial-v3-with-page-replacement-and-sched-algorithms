@@ -14,7 +14,11 @@ struct STCFTaskBlock<I: Copy + Ord> {
 
 impl<I: Copy + Ord> PartialOrd for STCFTaskBlock<I> {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        other.time_left.partial_cmp(&self.time_left)
+        if self.time_left != other.time_left {
+            other.time_left.partial_cmp(&self.time_left)
+        } else {
+            self.task_id.partial_cmp(&other.task_id)
+        }
     }
 }
 
@@ -26,7 +30,11 @@ impl<I: Copy + Ord> PartialEq for STCFTaskBlock<I> {
 
 impl<I: Copy + Ord> Ord for STCFTaskBlock<I> {
     fn cmp(&self, other: &Self) -> Ordering {
-        other.time_left.cmp(&self.time_left)
+        if self.time_left != other.time_left {
+            other.time_left.cmp(&self.time_left)
+        } else {
+            self.task_id.cmp(&other.task_id)
+        }
     }
 }
 

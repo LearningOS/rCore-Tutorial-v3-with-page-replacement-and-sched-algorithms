@@ -53,19 +53,27 @@ impl<P, T, MT: Manage<T, ThreadId> + Schedule<ThreadId>, MP: Manage<P, ProcId>>
     }
     /// 找到下一个进程
     pub fn find_next(&mut self) -> Option<&mut T> {
-        let scheduler = self.manager.as_mut().unwrap();
-        if let Some(id) = scheduler.fetch() {
-            // call sched to hook
-            KernelHook::handle_sched_to(id, scheduler, rcore_utils::get_time_ms());
+        if let Some(_) = self.current {
+            let task = self.current();
+            match task{
+                None => None,
+                Some(task) => Some(task)
+            }
+        } else {
+            let scheduler = self.manager.as_mut().unwrap();
+            if let Some(id) = scheduler.fetch() {
+                // call sched to hook
+                KernelHook::handle_sched_to(id, scheduler, rcore_utils::get_time_ms());
 
-            if let Some(task) = scheduler.get_mut(id) {
-                self.current = Some(id);
-                Some(task)
+                if let Some(task) = scheduler.get_mut(id) {
+                    self.current = Some(id);
+                    Some(task)
+                } else {
+                    None
+                }
             } else {
                 None
             }
-        } else {
-            None
         }
     }
     /// 设置 manager

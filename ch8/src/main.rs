@@ -139,7 +139,6 @@ extern "C" fn rust_main() -> ! {
                                 _ => {
                                     let ctx = &mut task.context.context;
                                     *ctx.a_mut(0) = ret as _;
-                                    unsafe { PROCESSOR.make_current_suspend() };
                                 }
                             },
                             Ret::Unsupported(_) => {
@@ -169,6 +168,7 @@ extern "C" fn rust_main() -> ! {
                 let task_list = TIMER.check_timer();
                 for tid in task_list.into_iter() {
                     PROCESSOR.re_enque(ThreadId::from_usize(tid));
+                    unsafe { PROCESSOR.make_current_suspend() };
                 }
             }
 
@@ -476,8 +476,10 @@ mod impls {
             let pid = proc.pid;
             *thread.context.context.a_mut(0) = 0 as _;
             unsafe {
+                let parent_tid = PROCESSOR.current().unwrap().tid;
+                PROCESSOR.make_current_suspend();
                 // modify here, call hook first to copy info from parent
-                SyscallHooks::handle_fork(PROCESSOR.current().unwrap().tid, thread.tid, PROCESSOR.get_scheduler());
+                SyscallHooks::handle_fork(parent_tid, thread.tid, PROCESSOR.get_scheduler());
 
                 PROCESSOR.add_proc(pid, proc, current_proc.pid);
                 PROCESSOR.add(thread.tid, thread, pid);
@@ -509,12 +511,12 @@ mod impls {
                         if let Some(mut args_ptr) = current.address_space.translate(VAddr::new(args), READABLE) {
                             unsafe {
                                 SyscallHooks::handle_exec(PROCESSOR.current().unwrap().tid, args_ptr.as_ref(), PROCESSOR.get_scheduler());
-                                // info!("exec: {} {}", PROCESSOR.current().unwrap().tid.get_usize(), args_ptr.as_ref().period);
+                                // info!("exec: {} {}", PROCESSOR.current().unwrap().tid.get_usize(), args_ptr.as_ref().total_time);
                             }
-
                         }
 
                         current.exec(ElfFile::new(&read_all(fd)).unwrap());
+                        unsafe { PROCESSOR.make_current_suspend() };
                         0
                     },
                 )
@@ -548,6 +550,7 @@ mod impls {
     impl Scheduling for SyscallContext {
         #[inline]
         fn sched_yield(&self, _caller: Caller) -> isize {
+            unsafe { PROCESSOR.make_current_suspend() };
             0
         }
 
@@ -712,8 +715,10 @@ mod impls {
             let thread = Thread::new(satp, context);
             let tid = thread.tid;
             unsafe {
+                let parent_tid = PROCESSOR.current().unwrap().tid;
+                PROCESSOR.make_current_suspend();
                 // modify here, call hook first to copy info from parent
-                SyscallHooks::handle_thread_create(PROCESSOR.current().unwrap().tid, thread.tid, PROCESSOR.get_scheduler());
+                SyscallHooks::handle_thread_create(parent_tid, thread.tid, PROCESSOR.get_scheduler());
 
                 PROCESSOR.add(tid, thread, current_proc.pid);
             }

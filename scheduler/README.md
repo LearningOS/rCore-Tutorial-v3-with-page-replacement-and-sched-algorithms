@@ -1,5 +1,5 @@
 # 进度
-- [ ] 框架
+- [x] 框架
     - [x] 调度器接入
     - [x] 时钟中断
     - [x] syscall
@@ -7,16 +7,16 @@
         - [x] yield
         - [x] 修改 exec，加入 arg 解析
         - [x] sleep
-    - [ ] testcase
-        - [ ] 根据 feature 自动编译对应的 testcase 包
-- [ ] 调度算法
+    - [x] testcase
+        - [x] 根据 feature 自动编译对应的 testcase 包
+    - [x] 去掉 syscall 后不必要的调度行为
+- [x] 调度算法
     - [x] default
     - [x] sjf
     - [x] stcf
     - [x] hrrn (Note: overflow in multiple)
     - [x] stride
     - [x] lottery
-    - [ ] mlfq
-    - [ ] mq
+    - [x] mlfq
     - [x] edf
     - [x] rms
