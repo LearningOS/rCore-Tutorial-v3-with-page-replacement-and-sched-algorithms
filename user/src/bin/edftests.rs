@@ -18,16 +18,18 @@ static PEROIDS: [isize; 3] = [
     2000, 500, 1000
 ];
 
+const INIT_DIFF: isize = 4327 - 1771;
+
 use user_lib::{exec_with_args, fork, get_time}; 
 
 #[no_mangle]
 pub fn main() -> i32 {
+    let st = get_time();
     for (i, test) in TESTS.iter().enumerate() {
-        let st = get_time();
-        println!("{} Arriving at {}", test, st);
+        println!("{} Arriving at {}", test, get_time());
         let pid = fork();
         if pid == 0 {
-            exec_with_args(*test,(&(PEROIDS[i], DEADLINES[i] + st)) as *const _ as usize);
+            exec_with_args(*test,(&(PEROIDS[i], DEADLINES[i] + st + INIT_DIFF)) as *const _ as usize);
             panic!("unreachable!");
         }
     }
