@@ -187,8 +187,8 @@ cases = [
 [ch8-rms]
 cases = [
     "initproc",
-    "edf0",
-    "edf1",
-    "edf2",
-    "edftests"
+    "rms0",
+    "rms1",
+    "rms2",
+    "rmstests"
 ]

@@ -16,8 +16,10 @@ fn main() -> i32 {
         "lotterytests"
     } else if cfg!(feature = "mlfq") {
         "mlfqtests"
-    } else if cfg!(feature = "edf") || cfg!(feature = "rms") {
+    } else if cfg!(feature = "edf") {
         "edftests"
+    } else if cfg!(feature = "rms") {
+        "rmstests"
     } else {
         panic!("unsupported sched method!");
     };
