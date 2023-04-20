@@ -203,6 +203,11 @@ pub fn condvar_wait(condvar_id: usize, mutex_id: usize) -> isize {
     unsafe { syscall2(SyscallId::CONDVAR_WAIT, condvar_id, mutex_id) }
 }
 
+#[inline]
+pub fn sys_mmap(start: usize, len: usize, prot: usize) -> isize {
+    unsafe { syscall3(SyscallId::MMAP, start, len, prot) }
+}
+
 /// 这个模块包含调用系统调用的最小封装，用户可以直接使用这些函数调用自定义的系统调用。
 pub mod native {
     use crate::SyscallId;

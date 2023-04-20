@@ -23,16 +23,16 @@ use crate::{
 };
 use alloc::alloc::alloc;
 use rcore_utils::get_time_ms;
-use core::{alloc::Layout, mem::MaybeUninit};
+use core::{alloc::Layout, mem::MaybeUninit, ptr::NonNull};
 use easy_fs::{FSManager, OpenFlags};
 use impls::Console;
 use kernel_context::foreign::MultislotPortal;
 use kernel_vm::{
     page_table::{MmuMeta, Sv39, VAddr, VmFlags, VmMeta, PPN, VPN},
-    AddressSpace,
+    AddressSpace, Pte,
 };
 pub use processor::PROCESSOR;
-use rcore_console::log::{self, log, info};
+use rcore_console::log::{self, log, info, debug};
 use rcore_task_manage::{ProcId, SyscallHooks, ThreadId};
 use riscv::register::*;
 use sbi_rt::*;
@@ -41,6 +41,7 @@ use syscall::Caller;
 use xmas_elf::ElfFile;
 
 use rcore_timer::TIMER;
+use rcore_frame_manage::{PageFaultHandler, FrameManager, FRAME_ALLOCATOR};
 
 // 定义内核入口。
 linker::boot0!(rust_main; stack = 32 * 4096);
@@ -50,6 +51,13 @@ const MEMORY: usize = 48 << 20;
 const PROTAL_TRANSIT: VPN<Sv39> = VPN::MAX;
 // 内核地址空间。
 static mut KERNEL_SPACE: MaybeUninit<AddressSpace<Sv39, Sv39Manager>> = MaybeUninit::uninit();
+
+// 页面置换相关
+static mut FRAME_MANAGER: PageFaultHandler<Sv39, Sv39Manager, FrameManager<Sv39, Sv39Manager>> = PageFaultHandler::new();
+static mut PAGE_FAULT_CNT: usize = 0;
+
+// const ALLOCATOR_MEM: usize = 0x81000000 - 0x80e23000; // 学长那边是 0x80e23 ~ 0x81000
+const ALLOCATOR_MEM: usize = 400 * 4096;
 
 extern "C" fn rust_main() -> ! {
     let layout = linker::KernelLayout::locate();
@@ -65,7 +73,12 @@ extern "C" fn rust_main() -> ! {
         kernel_alloc::transfer(core::slice::from_raw_parts_mut(
             layout.end() as _,
             MEMORY - layout.len(),
-        ))
+        ));
+
+        let allocator_start = layout.end() + MEMORY - layout.len();
+        let allocator_end = allocator_start + ALLOCATOR_MEM;
+        FRAME_ALLOCATOR.init(allocator_start >> Sv39::PAGE_BITS, allocator_end >> Sv39::PAGE_BITS);
+        info!("allocator range: {:#x}({:#x}) to {:#x}({:#x})", allocator_start, allocator_start >> Sv39::PAGE_BITS, allocator_end, allocator_end >> Sv39::PAGE_BITS);
     };
     // 建立异界传送门
     let portal_size = MultislotPortal::calculate_size(1);
@@ -73,7 +86,7 @@ extern "C" fn rust_main() -> ! {
     let portal_ptr = unsafe { alloc(portal_layout) };
     assert!(portal_layout.size() < 1 << Sv39::PAGE_BITS);
     // 建立内核地址空间
-    kernel_space(layout, MEMORY, portal_ptr as _);
+    kernel_space(layout, MEMORY + ALLOCATOR_MEM, portal_ptr as _);
     // 初始化异界传送门
     let portal = unsafe { MultislotPortal::init_transit(PROTAL_TRANSIT.base().val(), 1) };
     // 初始化 syscall
@@ -84,6 +97,7 @@ extern "C" fn rust_main() -> ! {
     syscall::init_signal(&SyscallContext);
     syscall::init_thread(&SyscallContext);
     syscall::init_sync_mutex(&SyscallContext);
+    syscall::init_memory(&SyscallContext);
     let initproc = read_all(FS.open("initproc", OpenFlags::RDONLY).unwrap());
     if let Some((process, thread)) = Process::from_elf(ElfFile::new(initproc.as_slice()).unwrap()) {
         unsafe {
@@ -92,6 +106,9 @@ extern "C" fn rust_main() -> ! {
             let (pid, tid) = (process.pid, thread.tid);
             PROCESSOR.add_proc(pid, process, ProcId::from_usize(usize::MAX));
             PROCESSOR.add(tid, thread, pid);
+
+            // init frame manager
+            FRAME_MANAGER.new_memory_set(pid.get_usize());
         }
     }
 
@@ -148,6 +165,44 @@ extern "C" fn rust_main() -> ! {
                         },
                     }
                 },
+
+                // handle page fault
+                scause::Trap::Exception(scause::Exception::LoadPageFault) => {
+                    // info!("----- Load Page Fault -----");
+                    unsafe {
+                        let cur_proc = PROCESSOR.get_current_proc().unwrap();
+                        FRAME_MANAGER.handle_pagefault(stval::read(), VmFlags::<Sv39>::build_from_str("URV").val(), &mut cur_proc.address_space, cur_proc.pid.get_usize());
+                    }
+                    unsafe { PAGE_FAULT_CNT += 1; }
+                },
+
+                // handle page fault
+                scause::Trap::Exception(scause::Exception::StorePageFault) => {
+                    // info!("----- Store Page Fault -----");
+                    unsafe {
+                        let cur_proc = PROCESSOR.get_current_proc().unwrap();
+                        FRAME_MANAGER.handle_pagefault(stval::read(), VmFlags::<Sv39>::build_from_str("UWV").val(), &mut cur_proc.address_space,  cur_proc.pid.get_usize());
+                        
+                        let _vaddr: usize = 0x10004b5f;
+                        let _val: usize = 95;
+                        if stval::read() == _vaddr && cur_proc.pid.get_usize() == 5 {
+                            let pte = cur_proc.address_space.translate_to_pte(VAddr::new(_vaddr)).unwrap();
+                            info!("vaddr 0x10004b5f vpn={:#x} ppn={:#x}", VAddr::<Sv39>::new(_vaddr).floor().val(), pte.ppn().val());
+                        }
+                    }
+                    unsafe { PAGE_FAULT_CNT += 1; }
+                },
+
+                // handle page fault
+                scause::Trap::Exception(scause::Exception::InstructionFault) => {
+                    // info!("----- Instruction Page Fault -----");
+                    unsafe {
+                        let cur_proc = PROCESSOR.get_current_proc().unwrap();
+                        FRAME_MANAGER.handle_pagefault(stval::read(), VmFlags::<Sv39>::build_from_str("UXV").val(), &mut cur_proc.address_space,  cur_proc.pid.get_usize());
+                    }
+                    unsafe { PAGE_FAULT_CNT += 1; }
+                },
+
                 // handle time interrupt
                 scause::Trap::Interrupt(scause::Interrupt::SupervisorTimer) => {
                     unsafe {
@@ -253,10 +308,11 @@ fn map_portal(space: &AddressSpace<Sv39, Sv39Manager>) {
 mod impls {
     use crate::{
         fs::{read_all, FS},
-        Thread, PROCESSOR,
+        Thread, PROCESSOR, FRAME_MANAGER, PAGE_FAULT_CNT,
     };
     use alloc::sync::Arc;
     use alloc::{alloc::alloc_zeroed, string::String, vec::Vec};
+    use rcore_frame_manage::{FRAME_ALLOCATOR};
     use rcore_timer::TIMER;
     use rcore_utils::{self, get_time_ms};
     use sbi_rt::Timer;
@@ -352,6 +408,48 @@ mod impls {
     pub struct SyscallContext;
     const READABLE: VmFlags<Sv39> = VmFlags::build_from_str("RV");
     const WRITEABLE: VmFlags<Sv39> = VmFlags::build_from_str("W_V");
+    const VMFLAG_U: usize = 1 << 4;
+
+    impl Memory for SyscallContext {
+        fn mmap(
+                &self,
+                caller: Caller,
+                addr: usize,
+                length: usize,
+                prot: i32,
+                flags: i32,
+                fd: i32,
+                offset: usize,
+            ) -> isize {
+                if length == 0 {
+                    return 0;
+                }
+                if (length > 1073741824) || ((prot & (!0x7)) != 0) || ((prot & 0x7) == 0) || ((addr % 4096) != 0) {
+                    return -1;
+                }
+
+                let process = unsafe { PROCESSOR.get_current_proc().unwrap() };
+                let memory_set = &mut process.address_space;
+                let l: VAddr<Sv39> = VAddr::new(addr);
+                let r: VAddr<Sv39> = VAddr::new(addr + length);
+                let lvpn = l.floor();
+                let rvpn = r.ceil();
+                for area in &memory_set.areas {
+                    if (lvpn <= area.range.start) && (rvpn > area.range.end) {
+                        return -1;
+                    }
+                }
+
+                info!("mmap! {} {:#x} {:#x}", memory_set.areas.len(), lvpn.val(), rvpn.val());
+                let mut permission: VmFlags<Sv39> = unsafe { VmFlags::from_raw((prot << 1) as usize | VMFLAG_U | Sv39::VALID_FLAG) };
+                memory_set.map_without_data_and_alloc(lvpn..rvpn, permission);
+                return 0;
+        }
+
+        fn munmap(&self, caller: Caller, addr: usize, length: usize) -> isize {
+            unimplemented!();
+        }
+    }
 
     impl IO for SyscallContext {
         fn write(&self, _caller: Caller, fd: usize, buf: usize, count: usize) -> isize {
@@ -465,8 +563,11 @@ mod impls {
         #[inline]
         fn exit(&self, _caller: Caller, exit_code: usize) -> isize {
             unsafe {
+                let pid = PROCESSOR.get_current_proc().unwrap().pid.get_usize();
                 PROCESSOR.make_current_exited(exit_code as _);
+                FRAME_MANAGER.del_memory_set(pid);
             }
+            info!("Total Page Fault Count = {}", unsafe { PAGE_FAULT_CNT });
             exit_code as isize
         }
 
@@ -483,6 +584,8 @@ mod impls {
 
                 PROCESSOR.add_proc(pid, proc, current_proc.pid);
                 PROCESSOR.add(thread.tid, thread, pid);
+
+                FRAME_MANAGER.clone_memory_set(pid.get_usize(), current_proc.pid.get_usize());
             }
             pid.get_usize() as isize
         }

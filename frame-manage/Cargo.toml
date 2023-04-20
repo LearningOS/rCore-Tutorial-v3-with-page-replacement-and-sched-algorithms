@@ -1,0 +1,18 @@
+[package]
+name = "rcore-frame-manage"
+description = "Implement some of the page replacement strategy for monocore"
+version = "0.0.0"
+authors = ["Emily <1207666367@qq.com>"]
+repository = ""
+documentation = ""
+license = "WTFPL"
+readme = "README.md"
+keywords = ["rcore", "page", "page fault"]
+categories = ["no-std"]
+
+[dependencies]
+kernel-vm = { path = "../kernel-vm" }
+
+[features]
+none = []
+fifo = []

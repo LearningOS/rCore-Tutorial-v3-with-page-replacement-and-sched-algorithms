@@ -1,5 +1,6 @@
 mod mapper;
 mod visitor;
+mod unmapper;
 
 extern crate alloc;
 
@@ -7,13 +8,19 @@ use crate::PageManager;
 use alloc::vec::Vec;
 use core::{fmt, ops::Range, ptr::NonNull};
 use mapper::Mapper;
-use page_table::{PageTable, PageTableFormatter, Pos, VAddr, VmFlags, VmMeta, PPN, VPN};
+use unmapper::UNMapper;
+use page_table::{PageTable, PageTableFormatter, Pos, VAddr, VmFlags, VmMeta, PPN, VPN, Pte};
 use visitor::Visitor;
+
+pub struct AreaBlock<Meta: VmMeta> {
+    pub range: Range<VPN<Meta>>,
+    pub flags: VmFlags<Meta>
+}
 
 /// 地址空间。
 pub struct AddressSpace<Meta: VmMeta, M: PageManager<Meta>> {
     /// 虚拟地址块
-    pub areas: Vec<Range<VPN<Meta>>>,
+    pub areas: Vec<AreaBlock<Meta>>,
     page_manager: M,
 }
 
@@ -41,13 +48,35 @@ impl<Meta: VmMeta, M: PageManager<Meta>> AddressSpace<Meta, M> {
 
     /// 向地址空间增加映射关系。
     pub fn map_extern(&mut self, range: Range<VPN<Meta>>, pbase: PPN<Meta>, flags: VmFlags<Meta>) {
-        self.areas.push(range.start..range.end);
+        self.areas.push(AreaBlock { range: range.start..range.end, flags: flags });
         let count = range.end.val() - range.start.val();
         let mut root = self.root();
         let mut mapper = Mapper::new(self, pbase..pbase + count, flags);
         root.walk_mut(Pos::new(range.start, 0), &mut mapper);
         if !mapper.ans() {
             // 映射失败，需要回滚吗？
+            todo!()
+        }
+    }
+
+    /// 向已有的 range 增加映射关系
+    pub fn map_to_exist_range(&mut self, range_id: usize, vpn: VPN<Meta>, ppn: PPN<Meta>) {
+        let mut root = self.root();
+        let mut mapper = Mapper::new(self, ppn..ppn+1, self.areas[range_id].flags);
+        root.walk_mut(Pos::new(vpn, 0), &mut mapper);
+
+        if !mapper.ans() {
+            panic!("map to exist range fail");
+        }
+    }
+
+    /// 从已有的 range 中删除某一个页面的映射
+    pub fn unmap_one_in_exist_range(&mut self, vpn: VPN<Meta>) {
+        let mut root = self.root();
+        let mut unmapper = UNMapper::new(self);
+        root.walk_mut(Pos::new(vpn, 0), &mut unmapper);
+        if !unmapper.ans() {
+            // unmap fail
             todo!()
         }
     }
@@ -76,6 +105,12 @@ impl<Meta: VmMeta, M: PageManager<Meta>> AddressSpace<Meta, M> {
         self.map_extern(range, self.page_manager.v_to_p(page), flags)
     }
 
+    /// map without data, 不 alloc frames 和修改页表，只声明这些地址被进程占有
+    /// 之后访问这些页面时必然触发 page fault
+    pub fn map_without_data_and_alloc(&mut self, range: Range<VPN<Meta>>, flags: VmFlags<Meta>) {
+        self.areas.push(AreaBlock { range: range, flags: flags });
+    }
+
     /// 检查 `flags` 的属性要求，然后将地址空间中的一个虚地址翻译成当前地址空间中的指针。
     pub fn translate<T>(&self, addr: VAddr<Meta>, flags: VmFlags<Meta>) -> Option<NonNull<T>> {
         let mut visitor = Visitor::new(self);
@@ -94,11 +129,19 @@ impl<Meta: VmMeta, M: PageManager<Meta>> AddressSpace<Meta, M> {
             })
     }
 
+    /// 返回 pte，并且不检查 `flags` 的 translate
+    pub fn translate_to_pte(&self, addr: VAddr<Meta>) -> Option<Pte<Meta>> {
+        let mut visitor = Visitor::new(self);
+        self.root().walk(Pos::new(addr.floor(), 0), &mut visitor);
+        visitor.ans()
+    }
+
     /// 遍历地址空间，将其中的地址映射添加进自己的地址空间中，重新分配物理页并拷贝所有数据及代码
     pub fn cloneself(&self, new_addrspace: &mut AddressSpace<Meta, M>) {
         let root = self.root();
         let areas = &self.areas;
-        for (_, range) in areas.iter().enumerate() {
+        for (_, area) in areas.iter().enumerate() {
+            let range = &area.range;
             let mut visitor = Visitor::new(self);
             // 虚拟地址块的首地址的 vpn
             let vpn = range.start;

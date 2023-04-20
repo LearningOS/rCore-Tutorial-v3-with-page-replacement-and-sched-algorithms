@@ -9,7 +9,7 @@ pub extern crate page_table;
 pub use space::AddressSpace;
 
 use core::ptr::NonNull;
-use page_table::{Pte, VmFlags, VmMeta, PPN};
+pub use page_table::{VmMeta, VPN, PPN, VAddr, Pte, VmFlags};
 
 /// 物理页管理。
 pub trait PageManager<Meta: VmMeta> {
