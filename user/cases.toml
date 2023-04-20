@@ -99,12 +99,14 @@ cases = [
 [ch8-seq]
 cases = [
     "initproc",
-    "sjf1",
-    "sjf2",
-    "sjf3",
-    "sjf4",
-    "sjf5",
-    "sjftests"
+    "user_shell",
+    "page_test1",
+    "page_test2",
+    "page_test3",
+    "page_test4",
+    "page_test5",
+    "page_test6",
+    "page_test7"
 ]
 
 [ch8-sjf]

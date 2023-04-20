@@ -17,6 +17,7 @@ lazy_static! {
         ("lotterytests", &LOTTERY_PRIORITY as *const _ as usize),
         ("edftests", &EDF_ARGS as *const _ as usize),
         ("rmstests", &RMS_PERIOD as *const _ as usize),
-        ("mlfqtests", &() as *const _ as usize)
+        ("mlfqtests", &() as *const _ as usize),
+        ("user_shell", &() as *const _ as usize)
     ].into_iter().collect();
 }

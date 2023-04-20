@@ -8,7 +8,10 @@ use user_lib::{exec_with_args, fork, sched_yield, wait, get_args};
 
 #[no_mangle]
 fn main() -> i32 {
-    let proc_name = if cfg!(feature = "seq") || cfg!(feature = "sjf") || cfg!(feature = "stcf") || cfg!(feature = "hrrn") {
+    let proc_name = if cfg!(feature = "seq") {
+        "user_shell"
+    }
+    else if cfg!(feature = "sjf") || cfg!(feature = "stcf") || cfg!(feature = "hrrn") {
         "sjftests"
     } else if cfg!(feature = "stride") {
         "stridetests"

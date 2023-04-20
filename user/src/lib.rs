@@ -92,3 +92,7 @@ pub fn sleep_noblock(period_ms: usize) {
 pub fn get_args(proc_name: &str) -> usize {
     *INIT_PROC_AND_ARGS.get(proc_name).unwrap()
 }
+
+pub fn mmap(start: usize, len: usize, prot: usize) -> isize {
+    sys_mmap(start, len, prot)
+}
