@@ -30,36 +30,6 @@ where Meta: VmMeta,
     match res {
         None => panic!("this vpn is not mapped in memeory set"),
         Some((id, _)) => {
-            // let mut _frame: FrameTracker;
-            // let ppn = if let Some(frame) = frame_alloc() {
-            //     let _ppn = frame.ppn;
-            //     _frame = frame;
-            //     PPN::new(_ppn)
-            // } else { // frame not enough
-            //     // check if the page is saved
-            //     unsafe {
-            //         if !IDE_MANAGER.check(task_id, vpn.val()) { // the page is not saved on disk
-            //             panic!("this vpn is not found on disk, probably something wrong happened, id={}, vpn={}", task_id, vpn.val());
-            //         }
-            //     }
-
-            //     let vpn_swap = manager.get_next_frame().unwrap();
-            //     let ppn_swap = memory_set.translate_to_pte(vpn_swap.base()).unwrap().ppn();
-            //     let old_data = unsafe { core::slice::from_raw_parts_mut(ppn_base(&ppn_swap) as *mut u8, PAGE_SIZE) };
-            //     unsafe { IDE_MANAGER.swap_in(task_id, vpn_swap.val(), old_data) } // swap vpn to disk
-
-            //     // set vpn_swap to invalid in the area 
-            //     // todo: multiple vpn point to the same ppn
-            //     memory_set.unmap_one_in_exist_range(vpn_swap);
-
-            //     let frame = frame_alloc().unwrap();
-            //     let _ppn = PPN::new(frame.ppn);
-            //     let dst = unsafe { core::slice::from_raw_parts_mut(ppn_base(&_ppn) as *mut u8, PAGE_SIZE)};
-
-            //     unsafe { IDE_MANAGER.swap_out(task_id, vpn.val(), dst) }; // swap orig data save in disk to frame
-            //     _frame = frame;
-            //     _ppn
-            // };
             let frame = frame_alloc().unwrap();
             let ppn = PPN::new(frame.ppn);
             // insert frame to area
