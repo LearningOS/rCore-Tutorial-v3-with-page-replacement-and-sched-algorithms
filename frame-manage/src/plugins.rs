@@ -9,7 +9,7 @@ pub trait Manage<Meta: VmMeta, M: PageManager<Meta>> {
 
     fn insert_frame(&mut self, vpn: VPN<Meta>, frame: FrameTracker);
 
-    fn get_next_frame(&mut self) -> Option<VPN<Meta>>;
+    fn get_next_frame(&mut self, memory_set: &mut AddressSpace<Meta, M>) -> Option<VPN<Meta>>;
 
     // fn handle_read(&mut self, token: usize, ppn: PPN<Meta>);
 
@@ -30,6 +30,17 @@ where Meta: VmMeta,
     match res {
         None => panic!("this vpn is not mapped in memeory set"),
         Some((id, _)) => {
+            if !frame_check() { // no space left in frame allocator
+                let vpn_swap = manager.get_next_frame(memory_set).unwrap();
+                let ppn_swap = memory_set.translate_to_pte(vpn_swap.base()).unwrap().ppn();
+                let old_data = unsafe { core::slice::from_raw_parts_mut(ppn_base(&ppn_swap) as *mut u8, PAGE_SIZE) };
+                unsafe { IDE_MANAGER.swap_in(task_id, vpn_swap.val(), old_data) } // swap vpn to disk
+
+                // set vpn_swap to invalid in the area 
+                // todo: multiple vpn point to the same ppn
+                memory_set.unmap_one_in_exist_range(vpn_swap);
+            }
+
             let frame = frame_alloc().unwrap();
             let ppn = PPN::new(frame.ppn);
             // insert frame to area
@@ -40,17 +51,6 @@ where Meta: VmMeta,
                     let dst = core::slice::from_raw_parts_mut(ppn_base(&ppn) as *mut u8, PAGE_SIZE);
                     IDE_MANAGER.swap_out(task_id, vpn.val(), dst); // swap orig data save in disk to frame
                 }
-            }
-
-            if !frame_check() { // no space left in frame allocator
-                let vpn_swap = manager.get_next_frame().unwrap();
-                let ppn_swap = memory_set.translate_to_pte(vpn_swap.base()).unwrap().ppn();
-                let old_data = unsafe { core::slice::from_raw_parts_mut(ppn_base(&ppn_swap) as *mut u8, PAGE_SIZE) };
-                unsafe { IDE_MANAGER.swap_in(task_id, vpn_swap.val(), old_data) } // swap vpn to disk
-
-                // set vpn_swap to invalid in the area 
-                // todo: multiple vpn point to the same ppn
-                memory_set.unmap_one_in_exist_range(vpn_swap);
             }
         }
     }

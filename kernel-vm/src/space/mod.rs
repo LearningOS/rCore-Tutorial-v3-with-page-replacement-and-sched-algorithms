@@ -1,10 +1,11 @@
 mod mapper;
 mod visitor;
 mod unmapper;
+mod flag_cleaner;
 
 extern crate alloc;
 
-use crate::PageManager;
+use crate::{PageManager, space::flag_cleaner::Cleaner};
 use alloc::vec::Vec;
 use core::{fmt, ops::Range, ptr::NonNull};
 use mapper::Mapper;
@@ -80,6 +81,17 @@ impl<Meta: VmMeta, M: PageManager<Meta>> AddressSpace<Meta, M> {
             todo!()
         }
     }
+
+        /// 改变某 vpn 对应的 pte 的 flag 的 access 位
+        pub fn clear_accessed(&mut self, vpn: VPN<Meta>) {
+            let mut root = self.root();
+            let mut cleaner = Cleaner::new(self, true, false);
+            root.walk_mut(Pos::new(vpn, 0), &mut cleaner);
+            if !cleaner.ans() {
+                // unmap fail
+                todo!()
+            }
+        }
 
     /// 分配新的物理页，拷贝数据并建立映射。
     pub fn map(

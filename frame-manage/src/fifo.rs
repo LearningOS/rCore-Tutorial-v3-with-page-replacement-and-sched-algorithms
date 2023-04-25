@@ -32,7 +32,7 @@ impl<Meta: VmMeta, M: PageManager<Meta>> Manage<Meta, M> for FIFOManager<Meta, M
         self.queue.push_back((vpn, frame));
     }
 
-    fn get_next_frame(&mut self) -> Option<VPN<Meta>> {
+    fn get_next_frame(&mut self, memory_set: &mut AddressSpace<Meta, M>) -> Option<VPN<Meta>> {
         Some(self.queue.pop_front()?.0)
     }
 }

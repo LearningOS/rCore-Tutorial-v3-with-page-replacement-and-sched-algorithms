@@ -12,9 +12,15 @@ pub use plugins::Manage;
 pub use manager::PageFaultHandler;
 pub use frame_allocator::{FRAME_ALLOCATOR, frame_alloc};
 
-pub const MEMORY_END: usize = 0x81000000;
+const ACCESS_FLAG: usize = 1 << 6;
+const DIRTY_FLAG: usize = 1 << 7;
 
 #[cfg(feature = "fifo")]
 mod fifo;
 #[cfg(feature = "fifo")]
 pub use fifo::FIFOManager as FrameManager;
+
+#[cfg(feature = "clock")]
+mod clock;
+#[cfg(feature = "clock")]
+pub use clock::ClockManager as FrameManager;

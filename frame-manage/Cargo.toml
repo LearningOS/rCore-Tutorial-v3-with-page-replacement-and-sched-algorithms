@@ -16,3 +16,4 @@ kernel-vm = { path = "../kernel-vm" }
 [features]
 none = []
 fifo = []
+clock = []
