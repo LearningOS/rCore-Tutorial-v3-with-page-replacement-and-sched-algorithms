@@ -24,3 +24,8 @@ pub use fifo::FIFOManager as FrameManager;
 mod clock;
 #[cfg(feature = "clock")]
 pub use clock::ClockManager as FrameManager;
+
+#[cfg(feature = "clock-improve")]
+mod clock_improve;
+#[cfg(feature = "clock-improve")]
+pub use clock_improve::ClockImproveManager as FrameManager;

@@ -26,7 +26,7 @@ sync = { path = "../sync" }
 rcore-timer = { path = "../timer", features = ["timer"]}
 rcore-utils = { path = "../utils" }
 
-rcore-frame-manage = { path = "../frame-manage", features = ["clock"] }
+rcore-frame-manage = { path = "../frame-manage", features = ["clock-improve"] }
 
 [build-dependencies]
 linker = { path = "../linker" }
