@@ -4,25 +4,31 @@ use kernel_vm::{PageManager, AddressSpace, VmMeta, VAddr, VmFlags};
 use crate::plugins::Manage;
 use crate::config::GLOBAL_ID;
 
-pub struct PageFaultHandler<Meta: VmMeta, PM: PageManager<Meta> + 'static, FM: Manage<Meta, PM>> {
+pub struct PageFaultHandler<Meta: VmMeta, PM: PageManager<Meta> + 'static, FM: Manage<Meta, PM>, Func: Fn(usize) -> &'static mut AddressSpace<Meta, PM>> {
     enable_pagefault: bool,
     managers: BTreeMap<usize, FM>,
+    func_get_memory_set: Option<Func>,
 
     dummy1: PhantomData<Meta>,
     dummy2: PhantomData<PM>
 }
 
-impl<Meta: VmMeta, PM: PageManager<Meta> + 'static, FM: Manage<Meta, PM> + Clone> PageFaultHandler<Meta, PM, FM> {
+impl<Meta: VmMeta, PM: PageManager<Meta> + 'static, FM: Manage<Meta, PM> + Clone, Func: Fn(usize) -> &'static mut AddressSpace<Meta, PM>> 
+    PageFaultHandler<Meta, PM, FM, Func> {
     pub const fn new() -> Self {
         if cfg!(feature = "none") {
-            Self { enable_pagefault: false, managers: BTreeMap::new(), dummy1: PhantomData::<Meta>, dummy2: PhantomData::<PM> }
+            Self { enable_pagefault: false, managers: BTreeMap::new(), func_get_memory_set: None, dummy1: PhantomData::<Meta>, dummy2: PhantomData::<PM> }
         } else {
-            Self { enable_pagefault: true, managers: BTreeMap::new(), dummy1: PhantomData::<Meta>, dummy2: PhantomData::<PM> }
+            Self { enable_pagefault: true, managers: BTreeMap::new(), func_get_memory_set: None, dummy1: PhantomData::<Meta>, dummy2: PhantomData::<PM> }
         }
     }
 
-    pub fn handle_pagefault<F>(&mut self, addr: usize, flag: usize, get_memory_set: &F, task_id: usize) 
-        where F: Fn(usize) -> &'static mut AddressSpace<Meta, PM>{
+    pub fn set_func(&mut self, func: Func) {
+        self.func_get_memory_set = Some(func);
+    }
+
+    pub fn handle_pagefault(&mut self, addr: usize, flag: usize, task_id: usize) {
+        let get_memory_set = self.func_get_memory_set.as_ref().unwrap();
         if self.enable_pagefault {
             // check if the addr is already mapped to memory set
             let vaddr: VAddr<Meta> = VAddr::from(addr);

@@ -57,15 +57,7 @@ impl<Meta: VmMeta, M: PageManager<Meta> + 'static> Manage<Meta, M> for PffManage
         handle_global_pagefault(get_memory_set, vpn, task_id, self);
     }
 
-    fn insert_frame(&mut self, vpn: VPN<Meta>, frame: FrameTracker) {
-        unimplemented!("this should not be called for global manager");
-    }
-
-    fn get_next_frame(&mut self, memory_set: &mut AddressSpace<Meta, M>) -> Option<VPN<Meta>> {
-        unimplemented!("this should not be called for global manager");
-    }
-
-    fn insert_global_frame(&mut self, vpn: VPN<Meta>, ppn: PPN<Meta>, task_id: usize, frame: FrameTracker) {
+    fn insert_frame(&mut self, vpn: VPN<Meta>, ppn: PPN<Meta>, task_id: usize, frame: FrameTracker) {
         self.queue.push_back(((ppn, vpn, task_id), frame));
     }
 

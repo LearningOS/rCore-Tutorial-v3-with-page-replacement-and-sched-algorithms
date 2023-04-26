@@ -53,7 +53,7 @@ const PROTAL_TRANSIT: VPN<Sv39> = VPN::MAX;
 static mut KERNEL_SPACE: MaybeUninit<AddressSpace<Sv39, Sv39Manager>> = MaybeUninit::uninit();
 
 // 页面置换相关
-static mut FRAME_MANAGER: PageFaultHandler<Sv39, Sv39Manager, FrameManager<Sv39, Sv39Manager>> = PageFaultHandler::new();
+static mut FRAME_MANAGER: PageFaultHandler<Sv39, Sv39Manager, FrameManager<Sv39, Sv39Manager>, fn(usize) -> &'static mut AddressSpace<Sv39, Sv39Manager>> = PageFaultHandler::new();
 static mut PAGE_FAULT_CNT: usize = 0;
 
 // const ALLOCATOR_MEM: usize = 0x81000000 - 0x80e23000; // 学长那边是 0x80e23 ~ 0x81000
@@ -80,6 +80,14 @@ extern "C" fn rust_main() -> ! {
         FRAME_ALLOCATOR.init(allocator_start >> Sv39::PAGE_BITS, allocator_end >> Sv39::PAGE_BITS);
         info!("allocator range: {:#x}({:#x}) to {:#x}({:#x})", allocator_start, allocator_start >> Sv39::PAGE_BITS, allocator_end, allocator_end >> Sv39::PAGE_BITS);
     };
+
+    // init frame manager
+    unsafe {
+        let get_mem_set = |task_id: usize| &mut PROCESSOR.get_proc(ProcId::from_usize(task_id))
+            .expect(format!("[Get memset] task id not in processor, id={}", task_id).as_str()).address_space;
+        FRAME_MANAGER.set_func(get_mem_set);
+    }
+
     // 建立异界传送门
     let portal_size = MultislotPortal::calculate_size(1);
     let portal_layout = Layout::from_size_align(portal_size, 1 << Sv39::PAGE_BITS).unwrap();
@@ -171,8 +179,7 @@ extern "C" fn rust_main() -> ! {
                     // info!("----- Load Page Fault -----");
                     unsafe {
                         let cur_proc = PROCESSOR.get_current_proc().unwrap();
-                        let get_mem_set = |task_id: usize| &mut PROCESSOR.get_proc(ProcId::from_usize(task_id)).unwrap().address_space;
-                        FRAME_MANAGER.handle_pagefault(stval::read(), VmFlags::<Sv39>::build_from_str("URV").val(), &get_mem_set, cur_proc.pid.get_usize());
+                        FRAME_MANAGER.handle_pagefault(stval::read(), VmFlags::<Sv39>::build_from_str("URV").val(), cur_proc.pid.get_usize());
                     }
                     unsafe { PAGE_FAULT_CNT += 1; }
                 },
@@ -183,14 +190,7 @@ extern "C" fn rust_main() -> ! {
                     unsafe {
                         let cur_proc = PROCESSOR.get_current_proc().unwrap();
                         let get_mem_set = |task_id: usize| &mut PROCESSOR.get_proc(ProcId::from_usize(task_id)).unwrap().address_space;
-                        FRAME_MANAGER.handle_pagefault(stval::read(), VmFlags::<Sv39>::build_from_str("UWV").val(), &get_mem_set,  cur_proc.pid.get_usize());
-                        
-                        let _vaddr: usize = 0x10004b5f;
-                        let _val: usize = 95;
-                        if stval::read() == _vaddr && cur_proc.pid.get_usize() == 5 {
-                            let pte = cur_proc.address_space.translate_to_pte(VAddr::new(_vaddr)).unwrap();
-                            info!("vaddr 0x10004b5f vpn={:#x} ppn={:#x}", VAddr::<Sv39>::new(_vaddr).floor().val(), pte.ppn().val());
-                        }
+                        FRAME_MANAGER.handle_pagefault(stval::read(), VmFlags::<Sv39>::build_from_str("UWV").val(), cur_proc.pid.get_usize());
                     }
                     unsafe { PAGE_FAULT_CNT += 1; }
                 },
@@ -201,7 +201,7 @@ extern "C" fn rust_main() -> ! {
                     unsafe {
                         let cur_proc = PROCESSOR.get_current_proc().unwrap();
                         let get_mem_set = |task_id: usize| &mut PROCESSOR.get_proc(ProcId::from_usize(task_id)).unwrap().address_space;
-                        FRAME_MANAGER.handle_pagefault(stval::read(), VmFlags::<Sv39>::build_from_str("UXV").val(), &get_mem_set,  cur_proc.pid.get_usize());
+                        FRAME_MANAGER.handle_pagefault(stval::read(), VmFlags::<Sv39>::build_from_str("UXV").val(), cur_proc.pid.get_usize());
                     }
                     unsafe { PAGE_FAULT_CNT += 1; }
                 },
