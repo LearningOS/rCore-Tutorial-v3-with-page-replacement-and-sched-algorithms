@@ -171,7 +171,8 @@ extern "C" fn rust_main() -> ! {
                     // info!("----- Load Page Fault -----");
                     unsafe {
                         let cur_proc = PROCESSOR.get_current_proc().unwrap();
-                        FRAME_MANAGER.handle_pagefault(stval::read(), VmFlags::<Sv39>::build_from_str("URV").val(), &mut cur_proc.address_space, cur_proc.pid.get_usize());
+                        let get_mem_set = |task_id: usize| &mut PROCESSOR.get_proc(ProcId::from_usize(task_id)).unwrap().address_space;
+                        FRAME_MANAGER.handle_pagefault(stval::read(), VmFlags::<Sv39>::build_from_str("URV").val(), &get_mem_set, cur_proc.pid.get_usize());
                     }
                     unsafe { PAGE_FAULT_CNT += 1; }
                 },
@@ -181,7 +182,8 @@ extern "C" fn rust_main() -> ! {
                     // info!("----- Store Page Fault -----");
                     unsafe {
                         let cur_proc = PROCESSOR.get_current_proc().unwrap();
-                        FRAME_MANAGER.handle_pagefault(stval::read(), VmFlags::<Sv39>::build_from_str("UWV").val(), &mut cur_proc.address_space,  cur_proc.pid.get_usize());
+                        let get_mem_set = |task_id: usize| &mut PROCESSOR.get_proc(ProcId::from_usize(task_id)).unwrap().address_space;
+                        FRAME_MANAGER.handle_pagefault(stval::read(), VmFlags::<Sv39>::build_from_str("UWV").val(), &get_mem_set,  cur_proc.pid.get_usize());
                         
                         let _vaddr: usize = 0x10004b5f;
                         let _val: usize = 95;
@@ -198,7 +200,8 @@ extern "C" fn rust_main() -> ! {
                     // info!("----- Instruction Page Fault -----");
                     unsafe {
                         let cur_proc = PROCESSOR.get_current_proc().unwrap();
-                        FRAME_MANAGER.handle_pagefault(stval::read(), VmFlags::<Sv39>::build_from_str("UXV").val(), &mut cur_proc.address_space,  cur_proc.pid.get_usize());
+                        let get_mem_set = |task_id: usize| &mut PROCESSOR.get_proc(ProcId::from_usize(task_id)).unwrap().address_space;
+                        FRAME_MANAGER.handle_pagefault(stval::read(), VmFlags::<Sv39>::build_from_str("UXV").val(), &get_mem_set,  cur_proc.pid.get_usize());
                     }
                     unsafe { PAGE_FAULT_CNT += 1; }
                 },

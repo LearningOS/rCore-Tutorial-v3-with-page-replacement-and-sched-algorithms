@@ -12,9 +12,11 @@ categories = ["no-std"]
 
 [dependencies]
 kernel-vm = { path = "../kernel-vm" }
+rcore-utils = { path = "../utils", optional = true }
 
 [features]
 none = []
 fifo = []
 clock = []
 clock-improve = []
+pff = ["dep:rcore-utils"]
