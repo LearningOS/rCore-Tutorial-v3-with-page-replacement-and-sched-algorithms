@@ -57,7 +57,7 @@ static mut FRAME_MANAGER: PageFaultHandler<Sv39, Sv39Manager, FrameManager<Sv39,
 static mut PAGE_FAULT_CNT: usize = 0;
 
 // const ALLOCATOR_MEM: usize = 0x81000000 - 0x80e23000; // 学长那边是 0x80e23 ~ 0x81000
-const ALLOCATOR_MEM: usize = 400 * 4096;
+const ALLOCATOR_MEM: usize = 399 * 4096;
 
 extern "C" fn rust_main() -> ! {
     let layout = linker::KernelLayout::locate();
