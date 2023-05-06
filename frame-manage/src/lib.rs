@@ -3,6 +3,7 @@ extern crate kernel_vm;
 extern crate alloc;
 
 mod config;
+mod clock_queue;
 mod plugins;
 mod manager;
 mod frame_allocator;
