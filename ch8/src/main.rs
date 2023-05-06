@@ -86,6 +86,8 @@ extern "C" fn rust_main() -> ! {
         let get_mem_set = |task_id: usize| &mut PROCESSOR.get_proc(ProcId::from_usize(task_id))
             .expect(format!("[Get memset] task id not in processor, id={}", task_id).as_str()).address_space;
         FRAME_MANAGER.set_func(get_mem_set);
+        // init frame manager
+        FRAME_MANAGER.init();
     }
 
     // 建立异界传送门
@@ -114,9 +116,6 @@ extern "C" fn rust_main() -> ! {
             let (pid, tid) = (process.pid, thread.tid);
             PROCESSOR.add_proc(pid, process, ProcId::from_usize(usize::MAX));
             PROCESSOR.add(tid, thread, pid);
-
-            // init frame manager
-            FRAME_MANAGER.new_memory_set(pid.get_usize());
         }
     }
 
@@ -588,8 +587,6 @@ mod impls {
 
                 PROCESSOR.add_proc(pid, proc, current_proc.pid);
                 PROCESSOR.add(thread.tid, thread, pid);
-
-                FRAME_MANAGER.clone_memory_set(pid.get_usize(), current_proc.pid.get_usize());
             }
             pid.get_usize() as isize
         }

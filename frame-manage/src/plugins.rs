@@ -9,7 +9,7 @@ pub trait Manage<Meta: VmMeta, M: PageManager<Meta> + 'static> {
     fn handle_pagefault<F>(&mut self, get_memory_set: &F, vpn: VPN<Meta>, task_id: usize)
         where F: Fn(usize) -> &'static mut AddressSpace<Meta, M>;
 
-    fn work<F>(&mut self, get_memory_set: &F) -> Vec<(PPN<Meta>, VPN<Meta>, usize)>  //  ppn, vpn, task_id
+    fn work<F>(&mut self, get_memory_set: &F, task_id: usize) -> Vec<(PPN<Meta>, VPN<Meta>, usize)>  //  ppn, vpn, task_id
         where F: Fn(usize) -> &'static mut AddressSpace<Meta, M>;
 
     fn insert_frame(&mut self, vpn: VPN<Meta>, ppn: PPN<Meta>, task_id: usize, frame: FrameTracker);
@@ -38,13 +38,12 @@ where Meta: VmMeta,
         None => panic!("this vpn is not mapped in memeory set"),
         Some((id, _)) => {
             if !frame_check() { // no space left in frame allocator
-                let swap_out_list = manager.work(get_memory_set);
+                let swap_out_list = manager.work(get_memory_set, task_id);
                 for &(_, _vpn, _) in swap_out_list.iter() {
                     let _ppn = memory_set.translate_to_pte(_vpn.base()).unwrap().ppn();
                     let old_data = unsafe { core::slice::from_raw_parts_mut(ppn_base(&_ppn) as *mut u8, PAGE_SIZE) };
                     unsafe { IDE_MANAGER.swap_in(task_id, _vpn.val(), old_data) } // swap vpn to disk
-                    let _memset = get_memory_set(task_id);
-                    _memset.unmap_one_in_exist_range(_vpn); // unmap in memset 
+                    memory_set.unmap_one_in_exist_range(_vpn); // unmap in memset 
                 }
             }
 
@@ -74,11 +73,11 @@ where Meta: VmMeta,
     match res {
         None => panic!("this vpn is not mapped in memeory set"),
         Some((id, _)) => {
-            let swap_out_list = manager.work(get_memory_set);
-            for &(_ppn, _vpn, task_id) in swap_out_list.iter() {
+            let swap_out_list = manager.work(get_memory_set, task_id);
+            for &(_ppn, _vpn, _tid) in swap_out_list.iter() {
                 let old_data = unsafe { core::slice::from_raw_parts_mut(ppn_base(&_ppn) as *mut u8, PAGE_SIZE) };
-                unsafe { IDE_MANAGER.swap_in(task_id, _vpn.val(), old_data) } // swap vpn to disk
-                let _memset = get_memory_set(task_id);
+                unsafe { IDE_MANAGER.swap_in(_tid, _vpn.val(), old_data) } // swap vpn to disk
+                let _memset = get_memory_set(_tid);
                 _memset.unmap_one_in_exist_range(_vpn); // unmap in memset 
             }
 
