@@ -15,6 +15,9 @@ pub trait Manage<Meta: VmMeta, M: PageManager<Meta> + 'static> {
     fn insert_frame(&mut self, vpn: VPN<Meta>, ppn: PPN<Meta>, task_id: usize, frame: FrameTracker);
 
     fn clear_frames(&mut self, task_id: usize); // clear all frames related to certain task, called when the task exit
+
+    fn handle_time_interrupt<F>(&mut self, get_memory_set: &F) 
+        where F: Fn(usize) -> &'static mut AddressSpace<Meta, M>;
 }
 
 pub fn ppn_base<Meta: VmMeta>(ppn: &PPN<Meta>) -> usize {

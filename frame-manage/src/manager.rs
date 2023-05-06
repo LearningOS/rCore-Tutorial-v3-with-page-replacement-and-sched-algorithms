@@ -39,7 +39,7 @@ impl<Meta: VmMeta, PM: PageManager<Meta> + 'static, FM: Manage<Meta, PM> + Clone
             }
 
             // handle page fault
-            let _id = if cfg!(feature = "pff") { GLOBAL_ID } else { task_id };
+            let _id = if cfg!(feature = "pff") || cfg!(feature = "work-set") { GLOBAL_ID } else { task_id };
             match self.managers.get_mut(&_id) {
                 None => {
                     panic!("[PAGE FAULT]: frame manager not set");
@@ -55,7 +55,7 @@ impl<Meta: VmMeta, PM: PageManager<Meta> + 'static, FM: Manage<Meta, PM> + Clone
     }
 
     pub fn new_memory_set(&mut self, task_id: usize) {
-        if cfg!(feature = "pff") && task_id != GLOBAL_ID{
+        if (cfg!(feature = "pff") || cfg!(feature = "work-set") )&& task_id != GLOBAL_ID{
             return; 
         }
 
@@ -63,7 +63,7 @@ impl<Meta: VmMeta, PM: PageManager<Meta> + 'static, FM: Manage<Meta, PM> + Clone
     }
 
     pub fn clone_memory_set(&mut self, task_id: usize, parent_id: usize) {
-        if cfg!(feature = "pff") {
+        if cfg!(feature = "pff") || cfg!(feature = "work-set"){
             return;
         }
         
@@ -72,11 +72,18 @@ impl<Meta: VmMeta, PM: PageManager<Meta> + 'static, FM: Manage<Meta, PM> + Clone
     }
 
     pub fn del_memory_set(&mut self, task_id: usize) {
-        if cfg!(feature = "pff") {
+        if cfg!(feature = "pff") || cfg!(feature = "work-set") {
             let manager = self.managers.get_mut(&GLOBAL_ID).unwrap();
             manager.clear_frames(task_id);
         } else {
             self.managers.remove(&task_id);
+        }
+    }
+
+    pub fn time_interrupt_hook(&mut self) {
+        if cfg!(feature = "pff") || cfg!(feature = "work-set") {
+            let manager = self.managers.get_mut(&GLOBAL_ID).unwrap();
+            manager.handle_time_interrupt(self.func_get_memory_set.as_ref().unwrap());
         }
     }
 }

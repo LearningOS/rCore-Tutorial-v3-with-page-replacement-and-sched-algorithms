@@ -212,6 +212,7 @@ extern "C" fn rust_main() -> ! {
                         if TIMER.is_timer_enabled() {
                             TIMER.set_next_trigger();
                             PROCESSOR.make_current_suspend();
+                            FRAME_MANAGER.time_interrupt_hook();
                         }
                         // log::info!("Time Interrupt!");
                     }

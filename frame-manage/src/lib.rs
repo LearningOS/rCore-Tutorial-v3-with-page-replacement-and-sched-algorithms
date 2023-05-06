@@ -16,6 +16,7 @@ const ACCESS_FLAG: usize = 1 << 6;
 const DIRTY_FLAG: usize = 1 << 7;
 
 pub const PFF_T: usize = 4000;
+pub const WORKSET_NUM: usize = 5; // 5 or 20
 
 #[cfg(feature = "fifo")]
 mod fifo;
@@ -38,3 +39,8 @@ extern crate rcore_utils;
 mod pff;
 #[cfg(feature = "pff")]
 pub use pff::PffManager as FrameManager;
+
+#[cfg(feature = "work-set")]
+mod work_set;
+#[cfg(feature = "work-set")]
+pub use work_set::WorkSetManager as FrameManager;
