@@ -125,4 +125,7 @@ impl<Meta: VmMeta, M: PageManager<Meta> + 'static> Manage<Meta, M> for PffManage
     fn clear_frames(&mut self, task_id: usize) {
         self.queue.remove(&task_id);
     }
+
+    fn handle_time_interrupt<F>(&mut self, get_memory_set: &F) 
+            where F: Fn(usize) -> &'static mut AddressSpace<Meta, M> {}
 }

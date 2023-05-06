@@ -77,4 +77,7 @@ impl<Meta: VmMeta, M: PageManager<Meta> + 'static> Manage<Meta, M> for ClockMana
     }
 
     fn clear_frames(&mut self, task_id: usize) {}
+
+    fn handle_time_interrupt<F>(&mut self, get_memory_set: &F) 
+            where F: Fn(usize) -> &'static mut AddressSpace<Meta, M> {}
 }
