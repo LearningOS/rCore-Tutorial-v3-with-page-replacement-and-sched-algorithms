@@ -2,7 +2,7 @@ use core::marker::PhantomData;
 use core::option::Option;
 
 use crate::{ACCESS_FLAG, PFF_T};
-use crate::plugins::{Manage, handle_global_pagefault};
+use crate::plugins::{Manage, handle_pagefault};
 use crate::frame_allocator::{FrameTracker, frame_check};
 use alloc::vec::Vec;
 use alloc::vec;
@@ -81,7 +81,7 @@ impl<Meta: VmMeta, M: PageManager<Meta> + 'static> Manage<Meta, M> for PffManage
 
     fn handle_pagefault<F>(&mut self, get_memory_set: &F, vpn: VPN<Meta>, task_id: usize)
             where F: Fn(usize) -> &'static mut AddressSpace<Meta, M> {
-        handle_global_pagefault(get_memory_set, vpn, task_id, self);
+        handle_pagefault(get_memory_set, vpn, task_id, self);
     }
 
     fn insert_frame(&mut self, vpn: VPN<Meta>, ppn: PPN<Meta>, task_id: usize, frame: FrameTracker) {
@@ -94,7 +94,7 @@ impl<Meta: VmMeta, M: PageManager<Meta> + 'static> Manage<Meta, M> for PffManage
         }
     }
 
-    fn work<F>(&mut self, get_memory_set: &F) -> Vec<(PPN<Meta>, VPN<Meta>, usize)> 
+    fn work<F>(&mut self, get_memory_set: &F, task_id: usize) -> Vec<(PPN<Meta>, VPN<Meta>, usize)> 
         where F: Fn(usize) -> &'static mut AddressSpace<Meta, M> {
             if self.last_pgfault == usize::MAX {
                 self.last_pgfault = get_time_ms();
