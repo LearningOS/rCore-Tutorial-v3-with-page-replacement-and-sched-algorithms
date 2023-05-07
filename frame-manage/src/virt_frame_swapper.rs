@@ -46,7 +46,7 @@ pub struct IdeManager {
     current: usize,
     end: usize,
     recycled: Vec<usize>,
-    map: BTreeMap<(usize, usize), usize>,
+    map: BTreeMap<usize, BTreeMap<usize, usize>>,  // BTreeMap<task_id, BTreeMap<vpn, save_id>>
 }
 
 impl IdeManager {
@@ -58,26 +58,48 @@ impl IdeManager {
             map: BTreeMap::new(),
         }
     }
+
+    fn insert_to_map(&mut self, token: usize, vpn: usize, idx: usize) {
+        if let Some(map) = self.map.get_mut(&token) {
+            map.insert(vpn, idx);
+        } else {
+            let mut map: BTreeMap<usize, usize> = BTreeMap::new();
+            map.insert(vpn, idx);
+            self.map.insert(token, map);
+        }
+    }
+
     pub fn swap_in(&mut self, token: usize, vpn: usize, src: &mut [u8]) {
         if let Some(idx) = self.recycled.pop() {
             unsafe { IDE.ide_write(idx, src); }
-            self.map.insert((token, vpn), idx);
+            self.insert_to_map(token, vpn, idx);
         } else if self.current == self.end {
             panic!("[kernel] Virtual disk space is not enough for handling page fault.");
         } else {
             self.current += 1;
             unsafe { IDE.ide_write(self.current - 1, src); }
-            self.map.insert((token, vpn), self.current - 1);
+            self.insert_to_map(token, vpn, self.current - 1);
         }
     }
     pub fn swap_out(&mut self, token: usize, vpn: usize, dst: &mut [u8]) {
-        let idx = self.map.get(&(token, vpn)).unwrap();
+        let map = self.map.get_mut(&token).expect("no frame of this token is saved in ide manager");
+        let idx = map.get(&vpn).unwrap();
         unsafe { IDE.ide_read(*idx, dst); }
         self.recycled.push(*idx);
-        self.map.remove(&(token, vpn));
+        map.remove(&vpn);
     }
     pub fn check(&mut self, token: usize, vpn: usize) -> bool {
-        self.map.get(&(token, vpn)) != None
+        match self.map.get(&token) {
+            Some(map) => map.get(&vpn) != None,
+            None => false
+        }
+    }
+
+    pub fn clear_disk_frames(&mut self, token: usize) {
+        let item = self.map.remove(&token);
+        if let Some(map) = item {
+            map.iter().for_each(|(_, idx)| self.recycled.push(*idx));
+        }
     }
 }
 

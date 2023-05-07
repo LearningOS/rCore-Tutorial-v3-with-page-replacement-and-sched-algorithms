@@ -60,12 +60,6 @@ impl<Meta: VmMeta, M: PageManager<Meta> + 'static> WorkSetManager<Meta, M> {
     }
 }
 
-impl<Meta: VmMeta, M: PageManager<Meta> + 'static> Clone for WorkSetManager<Meta, M> {
-    fn clone(&self) -> Self {
-        unimplemented!("shouldn't clone global manager");
-    }
-}
-
 impl<Meta: VmMeta, M: PageManager<Meta> + 'static> Manage<Meta, M> for WorkSetManager<Meta, M> {
     fn new() -> Self {
         let mut workset = VecDeque::new();

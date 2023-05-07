@@ -68,12 +68,6 @@ impl<Meta: VmMeta, M: PageManager<Meta> + 'static> PffManager<Meta, M> {
     }
 }
 
-impl<Meta: VmMeta, M: PageManager<Meta> + 'static> Clone for PffManager<Meta, M> {
-    fn clone(&self) -> Self {
-        unimplemented!("shouldn't clone global manager");
-    }
-}
-
 impl<Meta: VmMeta, M: PageManager<Meta> + 'static> Manage<Meta, M> for PffManager<Meta, M> {
     fn new() -> Self {
         Self { queue: BTreeMap::new(), last_pgfault: usize::MAX, dummy: PhantomData }

@@ -2,6 +2,7 @@ use core::marker::PhantomData;
 use kernel_vm::{PageManager, AddressSpace, VmMeta, VAddr, VmFlags};
 use crate::plugins::Manage;
 use crate::config::GLOBAL_ID;
+use crate::virt_frame_swapper::IDE_MANAGER;
 
 pub struct PageFaultHandler<Meta: VmMeta, PM: PageManager<Meta> + 'static, FM: Manage<Meta, PM>, Func: Fn(usize) -> &'static mut AddressSpace<Meta, PM>> {
     enable_pagefault: bool,
@@ -53,6 +54,7 @@ impl<Meta: VmMeta, PM: PageManager<Meta> + 'static, FM: Manage<Meta, PM>, Func: 
 
     pub fn del_memory_set(&mut self, task_id: usize) {
         self.manager.as_mut().expect("manager not init").clear_frames(task_id);
+        unsafe { IDE_MANAGER.clear_disk_frames(task_id); }
     }
 
     pub fn time_interrupt_hook(&mut self) {
