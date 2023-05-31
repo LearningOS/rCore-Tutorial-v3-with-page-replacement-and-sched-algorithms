@@ -16,8 +16,8 @@ pub use frame_allocator::{FRAME_ALLOCATOR, frame_alloc};
 const ACCESS_FLAG: usize = 1 << 6;
 const DIRTY_FLAG: usize = 1 << 7;
 
-pub const PFF_T: usize = 4000;
-pub const WORKSET_NUM: usize = 5; // 5 or 20
+pub const PFF_T: usize = 720000; // 100000 or 720000
+pub const WORKSET_NUM: usize = 20; // 5 or 20
 
 #[cfg(feature = "fifo")]
 mod fifo;

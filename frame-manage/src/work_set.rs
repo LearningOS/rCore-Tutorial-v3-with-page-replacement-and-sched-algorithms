@@ -43,6 +43,9 @@ impl<Meta: VmMeta, M: PageManager<Meta> + 'static> WorkSetManager<Meta, M> {
 
     fn compute_workset<F>(&mut self, get_memory_set: &F, ptr: usize, reset: bool) 
         where F: Fn(usize) -> &'static mut AddressSpace<Meta, M> {
+        while self.workset.len() <= ptr {
+            self.workset.push_back(BTreeSet::new());
+        }
         let work_set = &mut self.workset[ptr];
         work_set.clear();
         self.queue.iter().for_each(|(task_id, list)| {
@@ -63,9 +66,6 @@ impl<Meta: VmMeta, M: PageManager<Meta> + 'static> WorkSetManager<Meta, M> {
 impl<Meta: VmMeta, M: PageManager<Meta> + 'static> Manage<Meta, M> for WorkSetManager<Meta, M> {
     fn new() -> Self {
         let mut workset = VecDeque::new();
-        for i in 0..WORKSET_NUM+1 {
-            workset.push_back(BTreeSet::new());
-        }
         Self { queue: BTreeMap::new(), workset: workset, ptr: 0, dummy: PhantomData }
     }
 

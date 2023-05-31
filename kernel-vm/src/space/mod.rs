@@ -93,17 +93,6 @@ impl<Meta: VmMeta, M: PageManager<Meta>> AddressSpace<Meta, M> {
         }
     }
 
-    /// 改变某 vpn 对应的 pte 的 flag 的 access 位和 dirty 位
-    pub fn clear_accessed_and_dirty(&mut self, vpn: VPN<Meta>) {
-        let mut root = self.root();
-        let mut cleaner = Cleaner::new(self, true, true);
-        root.walk_mut(Pos::new(vpn, 0), &mut cleaner);
-        if !cleaner.ans() {
-            // unmap fail
-            todo!()
-        }
-    }
-
     /// 分配新的物理页，拷贝数据并建立映射。
     pub fn map(
         &mut self,
